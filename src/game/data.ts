@@ -156,6 +156,9 @@ export const INSTRUCTIONS =
   'Fourteen sealed case files stand between you and the children taken into the fog. Open them in order. Each file contains a chapter of the investigation, one essential clue, and one optional hint.\n' +
   'The clock begins at ninety minutes. A hint costs two minutes. Revealing a solution costs five. Wrong answers cost nothing, so trust your deductions. Your final score is every second left when File 14 closes.'
 
+/** Nom d'équipe spécial : ouvre une sauvegarde où tous les dossiers sont accessibles (tests). */
+export const UNLOCK_CODE = 'ZENAMIAGMD1005'
+
 export const normalize = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, '')
 export const isCorrect = (c: CaseData, input: string) => normalize(input) === normalize(c.answer)
 

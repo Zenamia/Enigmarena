@@ -37,6 +37,7 @@ function useStageScale() {
   const [s, setS] = useState(calc)
   useEffect(() => {
     const on = () => setS(calc())
+    on() // la fenêtre a pu changer entre le premier rendu et l'abonnement
     window.addEventListener('resize', on)
     window.addEventListener('orientationchange', on)
     return () => {

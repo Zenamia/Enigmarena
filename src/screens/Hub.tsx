@@ -98,7 +98,7 @@ export function FilesScreen() {
     <Screen bg="/img/bg/desk.webp">
       <Header ribbon="Case Files" />
       {CASES.map((c) => {
-        const tileState: TileState = state.solved.includes(c.n) ? 'done' : c.n === current ? 'open' : 'locked'
+        const tileState: TileState = state.solved.includes(c.n) ? 'done' : state.unlockAll || c.n === current ? 'open' : 'locked'
         return <FileTile key={c.n} n={c.n} state={tileState} onOpen={() => go({ name: 'story', n: c.n })} />
       })}
     </Screen>

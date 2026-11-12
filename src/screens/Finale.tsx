@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { useAudio } from '../audio/AudioProvider'
 import { EPILOGUE, mmss, rankFor } from '../game/data'
 import { reportFor, useGame } from '../game/GameContext'
 import { Paper, Plaque, Screen, ScrollText, Txt } from '../ui/layout'
@@ -64,6 +66,12 @@ export function ScoreScreen() {
 
 export function EndScreen() {
   const { go } = useGame()
+  const { setScene } = useAudio()
+  // Musique de fin pendant « The End », puis retour à l'ambiance.
+  useEffect(() => {
+    setScene('end')
+    return () => setScene('ambient')
+  }, [setScene])
   return (
     <Screen bg="/img/bg/end.webp">
       <TitleBlock />

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAudio } from '../audio/AudioProvider'
-import { INSTRUCTIONS, CASES } from '../game/data'
+import { INSTRUCTIONS, CASES, UNLOCK_CODE, normalize } from '../game/data'
 import { useGame } from '../game/GameContext'
 import { Box, Paper, PaperInput, Plaque, Screen, ScrollText, Txt } from '../ui/layout'
 
@@ -35,7 +35,7 @@ export function TitleScreen() {
 }
 
 export function SignInScreen() {
-  const { state, setTeam, go } = useGame()
+  const { state, setTeam, setUnlockAll, go } = useGame()
   const { play } = useAudio()
   const [bad, setBad] = useState(false)
   const submit = () => {
@@ -44,6 +44,8 @@ export function SignInScreen() {
       setBad(true)
       return
     }
+    // Le code spécial ouvre tous les dossiers ; tout autre nom repart d'une partie normale.
+    setUnlockAll(normalize(state.team) === normalize(UNLOCK_CODE))
     go({ name: 'instructions' })
   }
   return (

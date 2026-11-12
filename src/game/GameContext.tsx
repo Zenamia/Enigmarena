@@ -13,6 +13,8 @@ export interface GameState {
   solved: number[]
   hintsOpened: number[]
   revealed: number[]
+  /** Tous les dossiers sont ouverts (code d'équipe spécial). */
+  unlockAll: boolean
 }
 
 type Action =
@@ -22,6 +24,7 @@ type Action =
   | { type: 'hint'; n: number }
   | { type: 'reveal'; n: number }
   | { type: 'solve'; n: number }
+  | { type: 'unlockAll'; on: boolean }
   | { type: 'reset' }
 
 const KEY = 'enigmarena:game:v1'
@@ -33,6 +36,7 @@ const INITIAL: GameState = {
   solved: [],
   hintsOpened: [],
   revealed: [],
+  unlockAll: false,
 }
 
 const add = (list: number[], n: number) => (list.includes(n) ? list : [...list, n])
@@ -54,6 +58,8 @@ function reducer(s: GameState, a: Action): GameState {
       const done = solved.length === CASES.length
       return { ...s, solved, finishedAt: done && !s.finishedAt ? Date.now() : s.finishedAt }
     }
+    case 'unlockAll':
+      return { ...s, unlockAll: a.on }
     case 'reset':
       return INITIAL
   }
@@ -100,6 +106,7 @@ interface GameApi {
   reveal: (n: number) => void
   solve: (n: number) => void
   reset: () => void
+  setUnlockAll: (on: boolean) => void
   /** Prochain dossier à ouvrir (1..14), ou 15 quand tout est résolu. */
   current: number
 }
@@ -131,6 +138,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       reveal: (n) => dispatch({ type: 'reveal', n }),
       solve: (n) => dispatch({ type: 'solve', n }),
       reset: () => dispatch({ type: 'reset' }),
+      setUnlockAll: (on) => dispatch({ type: 'unlockAll', on }),
     }
   }, [state, go])
 
