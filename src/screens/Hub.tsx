@@ -1,0 +1,119 @@
+import { type ReactNode } from 'react'
+import { useAudio } from '../audio/AudioProvider'
+import { CASES, WELCOME } from '../game/data'
+import { useGame } from '../game/GameContext'
+import { Box, Header, Paper, Plaque, Screen, ScrollText, Txt } from '../ui/layout'
+
+/** Page d'histoire (prologue ou chapitre d'un dossier). */
+export function StoryPage({ ribbon, title, text, artwork, onNext, onBack }: { ribbon: string; title: string; text: string; artwork: string; onNext: () => void; onBack: () => void }) {
+  return (
+    <Screen bg="/img/bg/desk.webp">
+      <Header ribbon={ribbon} />
+      <Paper y={80.02} />
+      <Box cx={212.97} cy={172.35} w={304.592} h={59.594} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Txt font="cinzel" size={27.432} ls={0.5486} lh={1.12} w={304.592} style={{ position: 'static', whiteSpace: 'pre-line' }}>
+          {title}
+        </Txt>
+      </Box>
+      <Box x={68.67} y={213.5} w={289.457} h={179.728} style={{ borderRadius: 9.459, boxShadow: '0 3.783px 3.783px rgba(0,0,0,.25)', overflow: 'hidden' }}>
+        <img src={artwork} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      </Box>
+      <ScrollText box={{ x: 71.67, y: 411.2, w: 290, h: 130 }} track={{ x: 364.68, y: 151.55 }}>
+        <p>{text}</p>
+      </ScrollText>
+      <Plaque label="NEXT" y={605.18} onClick={onNext} />
+      <Plaque label="BACK" y={675.2} onClick={onBack} />
+    </Screen>
+  )
+}
+
+export function WelcomeScreen() {
+  const { go } = useGame()
+  return <StoryPage ribbon="PROLOGUE" title={WELCOME.title} text={WELCOME.text} artwork="/img/story/00.webp" onNext={() => go({ name: 'files' })} onBack={() => go({ name: 'rules' })} />
+}
+
+export function StoryScreen({ n }: { n: number }) {
+  const { go } = useGame()
+  const c = CASES[n - 1]
+  return (
+    <StoryPage
+      ribbon={`CASE FILE ${String(n).padStart(2, '0')}`}
+      title={c.title}
+      text={c.story}
+      artwork={`/img/story/${String(n).padStart(2, '0')}.webp`}
+      onNext={() => go({ name: 'invest', n })}
+      onBack={() => go({ name: 'files' })}
+    />
+  )
+}
+
+type TileState = 'done' | 'open' | 'locked'
+const TILE_X = [16, 118.03, 220.07, 322.1]
+const TILE_Y = [188.06, 338.1, 488.15, 638.19]
+const tilePos = (i: number) => (i < 12 ? { x: TILE_X[i % 4], y: TILE_Y[Math.floor(i / 4)] } : { x: TILE_X[(i % 12) + 1], y: TILE_Y[3] })
+
+const STAMP: Record<TileState, { src: string; box: { l: number | string; t: number; w: number; h: number }; inner: { w: number; h: number; rot: number } }> = {
+  done: { src: '/img/ui/stamp-done.webp', box: { l: 13.68, t: 67.99, w: 68.291, h: 38.268 }, inner: { w: 64.409, h: 25.757, rot: -11.68 } },
+  open: { src: '/img/ui/stamp-open.webp', box: { l: 'calc(50% + 2.01px)', t: 71.67, w: 71.486, h: 31.303 }, inner: { w: 69.196, h: 23.065, rot: -6.98 } },
+  locked: { src: '/img/ui/stamp-locked.webp', box: { l: 'calc(50% + 2.27px)', t: 70.39, w: 76.043, h: 35.003 }, inner: { w: 73.232, h: 24.411, rot: -8.53 } },
+}
+const CASE_ART: Record<TileState, string> = { done: '/img/ui/case-done.webp', open: '/img/ui/case-open.webp', locked: '/img/ui/case-locked.webp' }
+
+function Tile({ n, state, onOpen }: { n: number; state: TileState; onOpen: () => void }) {
+  const i = n - 1
+  const { x, y } = tilePos(i)
+  const st = STAMP[state]
+  const centered = typeof st.box.l === 'string'
+  const stamp: ReactNode = (
+    <div style={{ position: 'absolute', left: st.box.l, top: st.box.t, width: st.box.w, height: st.box.h, transform: centered ? 'translateX(-50%)' : undefined, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+      <div style={{ flex: 'none', transform: `rotate(${st.inner.rot}deg)`, width: st.inner.w, height: st.inner.h, position: 'relative', boxShadow: '0 4.001px 20.006px rgba(240,222,178,.5)' }}>
+        <img src={st.src} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+    </div>
+  )
+  return (
+    <button
+      type="button"
+      className="tile"
+      disabled={state === 'locked'}
+      aria-label={`File ${n}, ${state === 'done' ? 'done' : state === 'open' ? 'open' : 'locked'}`}
+      onClick={onOpen}
+      style={{ position: 'absolute', left: x, top: y, width: 92.028, height: 116.035, padding: 0, border: 0, background: 'none' }}
+    >
+      <img src={CASE_ART[state]} alt="" draggable={false} style={{ position: 'absolute', left: 0, top: 0, width: 96.029, height: 130.72, objectFit: 'contain', pointerEvents: 'none' }} />
+      <Txt font="corm" weight={600} size={12.004} ls={0.036} color="#f0deb2" cx={46.01} y={26.01} w={74.022}>
+        FILE
+      </Txt>
+      <Txt font="cinzel" size={15.005} ls={0.3001} color="#f0deb2" lh={1.12} cx={46.01} y={41.01} w={64.019}>
+        {String(n).padStart(2, '0')}
+      </Txt>
+      {stamp}
+    </button>
+  )
+}
+
+export function FilesScreen() {
+  const { state, current, go } = useGame()
+  return (
+    <Screen bg="/img/bg/desk.webp">
+      <Header ribbon="Case Files" />
+      {CASES.map((c) => {
+        const tileState: TileState = state.solved.includes(c.n) ? 'done' : c.n === current ? 'open' : 'locked'
+        return <FileTile key={c.n} n={c.n} state={tileState} onOpen={() => go({ name: 'story', n: c.n })} />
+      })}
+    </Screen>
+  )
+}
+
+function FileTile(props: { n: number; state: TileState; onOpen: () => void }) {
+  const { play } = useAudio()
+  return (
+    <Tile
+      {...props}
+      onOpen={() => {
+        play('fileOpen')
+        props.onOpen()
+      }}
+    />
+  )
+}

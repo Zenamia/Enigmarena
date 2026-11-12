@@ -1,32 +1,25 @@
-# React + TypeScript + Vite
+# Enigmarena — The Shadow Riddle
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Web app React (Vite + TypeScript) de l'escape game « The Shadow Riddle », construite depuis le Figma
+*Printable escape game* (page **FULL WEB APP**).
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # développement
+npm run build    # production (dist/)
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Parcours
+Titre → équipe → instructions → règles → chargement → prologue → hub des 14 dossiers →
+(histoire → enquête → indice / énigme / révélation → solution → dossier résolu) × 14 → épilogue → rapport → fin.
+
+- **Chrono** : 90 min, lancé à « START THE GAME ». Indice −2:00 (une fois par dossier), révélation −5:00. Score = secondes restantes.
+- **Sauvegarde** : la partie est conservée dans le `localStorage` (clé `enigmarena:game:v1`).
+- **Son** : ambiance + SFX (`src/audio`), bouton gramophone ; bouton plein écran. Curseur main sur toute l'app.
+
+## Structure
+- `src/game/data.ts` — textes, indices, réponses des 14 dossiers (modifiable).
+- `src/game/GameContext.tsx` — état, navigation, chrono, pénalités.
+- `src/screens/` — un composant par écran du Figma ; `puzzles.tsx` pour les 14 énigmes (zoom/déplacement).
+- `src/ui/layout.tsx` — primitives : les coordonnées sont celles du Figma (écran 430×932, mis à l'échelle).
+- `public/img` — visuels exportés du Figma (WebP / SVG).

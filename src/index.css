@@ -1,48 +1,96 @@
 :root {
-  --leather: #8a1620;
-  --brass: #b88a3c;
+  --font-cinzel: 'Cinzel', 'Times New Roman', serif;
+  --font-script: 'Great Vibes', cursive;
+  --font-corm: 'Cormorant Garamond', Georgia, serif;
+  /* Le Figma utilise « Amstelvar Alpha » (non distribuée sur le web) : Lora, réduite de 2 %, épouse ses largeurs de texte à ~1 % près. */
+  --font-body: 'Lora', Georgia, serif;
+  --body-scale: 0.98;
+  --cursor: url('/ui/cursor-pointer.png') 4 3, auto;
+  --cursor-hover: url('/ui/cursor-pointer.png') 4 3, pointer;
   color-scheme: dark;
-  font-family: Georgia, 'Times New Roman', serif;
 }
 
-* { box-sizing: border-box; }
-
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body, #root { height: 100%; margin: 0; }
-
 body {
-  background: #1a0b0c;
-  color: #f3e3c3;
+  background: #120a08;
   overflow: hidden;
-  /* Curseur custom : main de l'application (hotspot sur le bout de l'index) */
-  cursor: url('/ui/cursor-pointer.png') 20 4, auto;
+  cursor: var(--cursor);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
 }
+button, a, input, [role='button'], .scroll-thumb { cursor: var(--cursor-hover); }
+input { cursor: var(--cursor); }
+img { -webkit-user-drag: none; user-select: none; }
 
-button, a, [role='button'] {
-  cursor: url('/ui/cursor-pointer.png') 20 4, pointer;
+/* --- Scène : un écran du Figma (430×932) mis à l'échelle pour tenir dans la fenêtre --- */
+.viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 40%, #2a1710, #0c0605 70%); }
+.stage-box { position: relative; flex: none; }
+.stage {
+  position: absolute; left: 0; top: 0;
+  width: 430.129px; height: 932.281px;
+  transform-origin: 0 0;
+  border: 2.001px solid #4d3317;
+  border-radius: 28.008px;
+  overflow: hidden;
+  background: #1a0f0b;
+  user-select: none;
 }
+.screen { position: absolute; inset: 0; animation: screen-in 0.28s ease both; }
+.screen-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.overlay { position: absolute; inset: 0; pointer-events: none; }
+@keyframes screen-in { from { opacity: 0; } to { opacity: 1; } }
 
-.stage { position: relative; height: 100%; }
-
-.toolbar {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: flex;
-  gap: 12px;
-  z-index: 10;
+/* --- Plaque rouge et laiton --- */
+.plaque { padding: 0; border: 0; background: none; color: inherit; font: inherit; transition: filter 0.12s ease, transform 0.12s ease; }
+.plaque-art { position: absolute; left: 0; top: 0; display: block; filter: drop-shadow(0 2.001px 25px rgba(240, 222, 178, 0.1)); pointer-events: none; }
+.plaque-label {
+  position: absolute; left: 0; top: -1.2px; width: 228.069px; height: 76.023px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-body); font-size: calc(16.005px * var(--body-scale)); line-height: 1.28; letter-spacing: 0.8002px; color: #f0deb2; pointer-events: none;
 }
+.plaque:hover:not(:disabled) { filter: brightness(1.14) saturate(1.05); }
+.plaque:active:not(:disabled) { transform: translateY(1px) scale(0.99); filter: brightness(0.95); }
+.plaque:focus-visible { outline: 2px solid #f0deb2; outline-offset: 2px; border-radius: 14px; }
+.plaque:disabled { filter: grayscale(0.8) brightness(0.7); }
 
-.icon-btn {
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  border: 0;
-  background: none;
-  transition: transform 0.12s ease, filter 0.12s ease;
-  filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.5));
+/* --- Blocs de texte défilants (barre native masquée) --- */
+.scroll-text { overflow-y: auto; scrollbar-width: none; touch-action: pan-y; }
+.scroll-text::-webkit-scrollbar { display: none; }
+.scroll-text p { margin: 0; }
+.scroll-text p + p { margin-top: 0; }
+
+/* --- Champ de saisie sur papier --- */
+.paper-input img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8.002px; box-shadow: 0 4.001px 4.001px rgba(0, 0, 0, 0.25); pointer-events: none; }
+.paper-input input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  background: transparent; border: 0; outline: 0; padding: 0 14px;
+  text-align: center; font-family: var(--font-body); font-size: calc(20.006px * var(--body-scale)); color: #211209; text-transform: uppercase;
 }
-.icon-btn img { width: 100%; height: 100%; display: block; user-select: none; }
-.icon-btn:hover { transform: translateY(-2px) scale(1.05); filter: drop-shadow(0 5px 6px rgb(0 0 0 / 0.55)) brightness(1.08); }
-.icon-btn:active { transform: translateY(1px) scale(0.97); }
-.icon-btn:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; border-radius: 12px; }
-.icon-btn--dimmed img { filter: grayscale(0.85) brightness(0.7); }
+.paper-input input::placeholder { color: rgba(31, 19, 11, 0.7); letter-spacing: 1.0003px; }
+.paper-input:focus-within img { box-shadow: 0 0 0 2px rgba(240, 222, 178, 0.85), 0 4.001px 8px rgba(0, 0, 0, 0.35); }
+.paper-input.is-wrong { animation: shake 0.4s ease; }
+@keyframes shake { 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
+
+/* --- Boutons son / plein écran (illustrés) --- */
+.toolbar { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; justify-content: space-between; z-index: 20; pointer-events: none; }
+.icon-btn { pointer-events: auto; width: 40px; height: 40px; padding: 0; border: 0; background: none; transition: transform 0.12s ease, filter 0.12s ease; filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.55)); }
+.icon-btn img { width: 100%; height: 100%; display: block; }
+.icon-btn:hover { transform: translateY(-1px) scale(1.07); filter: drop-shadow(0 4px 5px rgb(0 0 0 / 0.6)) brightness(1.1); }
+.icon-btn:active { transform: scale(0.95); }
+.icon-btn:focus-visible { outline: 2px solid #f0deb2; outline-offset: 2px; border-radius: 10px; }
+.icon-btn--dimmed img { filter: grayscale(0.85) brightness(0.65); }
+
+/* --- Énigmes : zoom / déplacement --- */
+.puzzle-clip { position: absolute; overflow: hidden; touch-action: none; }
+.puzzle-inner { position: absolute; transition: transform 0.18s ease; will-change: transform; }
+.puzzle-inner.is-dragging { transition: none; }
+.puzzle-inner img, .puzzle-inner div { pointer-events: none; }
+.zoom-btn { position: absolute; width: 44.013px; height: 44.013px; padding: 0; border: 0; background: none; border-radius: 50%; }
+.zoom-btn:hover { background: rgba(255, 255, 255, 0.28); }
+.zoom-btn:active { background: rgba(0, 0, 0, 0.12); }
+
+@media (prefers-reduced-motion: reduce) {
+  .screen, .paper-input.is-wrong { animation: none; }
+}

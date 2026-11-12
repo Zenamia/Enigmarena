@@ -10,10 +10,13 @@ export function FullscreenButton() {
     return () => document.removeEventListener('fullscreenchange', onChange)
   }, [])
 
+  // iOS Safari n'autorise pas le plein écran sur les pages : on masque alors le bouton.
+  if (!document.documentElement.requestFullscreen) return null
+
   const toggle = () => {
     if (document.fullscreenElement) void document.exitFullscreen()
-    else void document.documentElement.requestFullscreen?.()
+    else void document.documentElement.requestFullscreen()
   }
 
-  return <IconButton icon="/ui/btn-fullscreen.webp" label={isFs ? 'Quitter le plein écran' : 'Plein écran'} onClick={toggle} />
+  return <IconButton icon="/ui/btn-fullscreen.webp" label={isFs ? 'Exit full screen' : 'Full screen'} onClick={toggle} />
 }
