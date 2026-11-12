@@ -162,12 +162,5 @@ export const UNLOCK_CODE = 'ZENAMIAGMD1005'
 export const normalize = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, '')
 export const isCorrect = (c: CaseData, input: string) => normalize(input) === normalize(c.answer)
 
-/** Titres de rang selon le score (secondes restantes). Seuils à valider. */
-export function rankFor(score: number) {
-  if (score >= 300) return 'MASTER OF SHADOWS'
-  if (score > 0) return 'SEEKER OF TRUTH'
-  return 'SURVIVOR OF THE FOG'
-}
-
 export const pad2 = (n: number) => String(n).padStart(2, '0')
 export const mmss = (sec: number) => `${pad2(Math.floor(sec / 60))}:${pad2(Math.floor(sec % 60))}`

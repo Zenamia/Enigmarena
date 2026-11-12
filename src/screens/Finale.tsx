@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useAudio } from '../audio/AudioProvider'
-import { EPILOGUE, mmss, rankFor } from '../game/data'
+import { EPILOGUE, mmss } from '../game/data'
 import { reportFor, useGame } from '../game/GameContext'
 import { Paper, Plaque, Screen, ScrollText, Txt } from '../ui/layout'
 import { TitleBlock } from './Intro'
@@ -55,9 +55,6 @@ export function ScoreScreen() {
       </Txt>
       <Txt font="cinzel" size={73.339} ls={1.4668} color="#8f0f0e" lh={1.12} cx={213.06} y={466.58} w={256.687}>
         {r.score}
-      </Txt>
-      <Txt font="corm" size={19.006} ls={0.057} cx={213.06} y={623.19} w={260.078}>
-        {rankFor(r.score)}
       </Txt>
       <Plaque label="CONTINUE" y={683.21} center onClick={() => go({ name: 'end' })} />
     </Screen>
