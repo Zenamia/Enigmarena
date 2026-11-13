@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAudio } from '../audio/AudioProvider'
-import { INSTRUCTIONS, CASES, UNLOCK_CODE, normalize } from '../game/data'
-import { useGame } from '../game/GameContext'
+import { loadCloud } from '../game/cloud'
+import { INSTRUCTIONS, CASES, UNLOCK_CODE, teamKey } from '../game/data'
+import { useGame, type GameState } from '../game/GameContext'
 import { Box, Paper, PaperInput, Plaque, Screen, ScrollText, Txt } from '../ui/layout'
 
 /** « THE SHADOW RIDDLE » : titre en trois lignes, commun au titre, au chargement et à la fin. */
@@ -34,20 +35,87 @@ export function TitleScreen() {
   )
 }
 
+type Notice = { mode: 'new' | 'back' | 'offline'; saved?: GameState }
+
+/** Taille du nom d'équipe dans la fenêtre, selon sa longueur. */
+const nameSize = (name: string) => (name.length <= 10 ? 31 : name.length <= 14 ? 26 : name.length <= 18 ? 21.5 : 18)
+
+const NOTICE_TEXT: Record<Notice['mode'], { label: string; body: string }> = {
+  new: {
+    label: 'YOUR TEAM NAME',
+    body: 'This name is your key. Sign in with it to get your progression back if you are ever disconnected.',
+  },
+  back: {
+    label: 'WELCOME BACK',
+    body: 'Your progression has been restored. Keep this name safe: it is your key to every future sign-in.',
+  },
+  offline: {
+    label: 'YOUR TEAM NAME',
+    body: 'Online saving is unavailable right now, so your progression stays on this device. Remember this name.',
+  },
+}
+
+/** Fenêtre « nom d'équipe » (mallette du jeu) : rappelle que ce nom permet de se reconnecter. */
+function TeamNotice({ name, notice, onContinue, onBack }: { name: string; notice: Notice; onContinue: () => void; onBack: () => void }) {
+  const t = NOTICE_TEXT[notice.mode]
+  return (
+    <div className="modal" role="dialog" aria-modal="true" aria-label={t.label}>
+      <img src="/img/ui/case-open.webp" alt="" draggable={false} style={{ position: 'absolute', left: 22.01, top: 98.03, width: 382.115, height: 520.157, objectFit: 'contain', pointerEvents: 'none' }} />
+      <Txt size={16} ls={1} color="#e59a4a" cx={213.07} y={199} w={250}>
+        {t.label}
+      </Txt>
+      <Box cx={213.07} y={231.07} w={300.09} h={96} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Txt font="cinzel" size={nameSize(name)} ls={0.6} color="#f0deb2" lh={1.12} w={300.09} style={{ position: 'static', overflowWrap: 'anywhere' }}>
+          {name}
+        </Txt>
+      </Box>
+      <Txt size={15.5} ls={0.05} cx={207} cy={447.64} w={196} lh={1.3}>
+        {t.body}
+      </Txt>
+      <Plaque label="CONTINUE" y={605.18} onClick={onContinue} />
+      <Plaque label="BACK" y={675.2} onClick={onBack} />
+    </div>
+  )
+}
+
 export function SignInScreen() {
-  const { state, setTeam, setUnlockAll, go } = useGame()
+  const { state, setTeam, newTeam, restore, go } = useGame()
   const { play } = useAudio()
   const [bad, setBad] = useState(false)
-  const submit = () => {
-    if (!state.team.trim()) {
+  const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState<Notice | null>(null)
+  const name = state.team.trim().replace(/\s+/g, ' ')
+
+  const submit = async () => {
+    if (busy) return
+    if (teamKey(name).length < 2) {
       play('wrong')
       setBad(true)
       return
     }
-    // Le code spécial ouvre tous les dossiers ; tout autre nom repart d'une partie normale.
-    setUnlockAll(normalize(state.team) === normalize(UNLOCK_CODE))
-    go({ name: 'instructions' })
+    play('button')
+    setBusy(true)
+    const r = await loadCloud(name)
+    setBusy(false)
+    if (r.status === 'found') setNotice({ mode: 'back', saved: r.state })
+    else setNotice({ mode: r.status === 'none' ? 'new' : 'offline' })
   }
+
+  const proceed = () => {
+    if (!notice) return
+    if (notice.mode === 'back' && notice.saved) {
+      restore(notice.saved) // retrouve la partie de cette équipe, où qu'on soit
+      return
+    }
+    const sameTeamLocally = state.confirmed && teamKey(state.team) === teamKey(name)
+    if (notice.mode === 'offline' && sameTeamLocally) {
+      go({ name: state.startedAt ? 'files' : 'instructions' }) // hors ligne : on garde la partie de cet appareil
+      return
+    }
+    // Nouvelle équipe : le code spécial ouvre tous les dossiers.
+    newTeam(name, teamKey(name) === teamKey(UNLOCK_CODE))
+  }
+
   return (
     <Screen bg="/img/bg/paper-room.webp">
       <Paper y={193.06} />
@@ -64,13 +132,15 @@ export function SignInScreen() {
         placeholder="INSERT NAME"
         maxLength={22}
         state={bad ? 'wrong' : 'idle'}
+        readOnly={busy}
         onChange={(v) => {
           setBad(false)
           setTeam(v)
         }}
         onEnter={submit}
       />
-      <Plaque label="CONTINUE" y={787.24} center sound={null} onClick={submit} />
+      <Plaque label={busy ? '...' : 'CONTINUE'} y={787.24} center sound={null} disabled={busy} onClick={submit} />
+      {notice && <TeamNotice name={name} notice={notice} onContinue={proceed} onBack={() => setNotice(null)} />}
     </Screen>
   )
 }

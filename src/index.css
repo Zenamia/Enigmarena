@@ -59,7 +59,12 @@ img { -webkit-user-drag: none; user-select: none; }
 .scroll-text { overflow-y: auto; scrollbar-width: none; touch-action: pan-y; }
 .scroll-text::-webkit-scrollbar { display: none; }
 .scroll-text p { margin: 0; }
-.scroll-text p + p { margin-top: 0; }
+.scroll-text:focus { outline: none; }
+
+/* Pages d'histoire : image + texte dans le même bloc défilant */
+.story-art { display: block; width: 289.457px; height: 179.728px; object-fit: cover; border-radius: 9.459px; box-shadow: 0 3.783px 3.783px rgba(0, 0, 0, 0.25); }
+.story-text { width: 290px; margin: 17.97px 0 16px 3px; }
+.story-text p + p { margin-top: 7px; }
 
 /* --- Champ de saisie sur papier --- */
 .paper-input img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8.002px; box-shadow: 0 4.001px 4.001px rgba(0, 0, 0, 0.25); pointer-events: none; }
@@ -94,3 +99,6 @@ img { -webkit-user-drag: none; user-select: none; }
 @media (prefers-reduced-motion: reduce) {
   .screen, .paper-input.is-wrong { animation: none; }
 }
+
+/* --- Fenêtre (popup) par-dessus un écran --- */
+.modal { position: absolute; inset: 0; z-index: 10; background: rgba(3, 3, 5, 0.72); animation: screen-in 0.22s ease both; }

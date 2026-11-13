@@ -13,7 +13,7 @@ export function EpilogueScreen() {
       <Txt font="cinzel" size={38.011} ls={0.7602} lh={1.12} cx={213.06} y={173.05} w={260.078}>
         EPILOGUE
       </Txt>
-      <ScrollText box={{ x: 68, y: 244, w: 290, h: 289 }} track={{ x: 364.68, y: 151.9 }}>
+      <ScrollText box={{ x: 68, y: 244, w: 290, h: 289 }} track={{ x: 364.68, y: 151.9 }} autoScroll={{ speed: 12, delay: 2500 }}>
         <p>{EPILOGUE}</p>
       </ScrollText>
       <Plaque label="CONTINUE" y={683.21} center onClick={() => go({ name: 'score' })} />

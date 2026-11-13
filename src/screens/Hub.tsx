@@ -15,11 +15,14 @@ export function StoryPage({ ribbon, title, text, artwork, onNext, onBack }: { ri
           {title}
         </Txt>
       </Box>
-      <Box x={68.67} y={213.5} w={289.457} h={179.728} style={{ borderRadius: 9.459, boxShadow: '0 3.783px 3.783px rgba(0,0,0,.25)', overflow: 'hidden' }}>
-        <img src={artwork} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-      </Box>
-      <ScrollText box={{ x: 71.67, y: 411.2, w: 290, h: 130 }} track={{ x: 364.68, y: 151.55 }}>
-        <p>{text}</p>
+      {/* L'illustration défile avec le texte : toute la hauteur du papier sert à la lecture. */}
+      <ScrollText key={title} className="story-scroll" box={{ x: 68.67, y: 213.5, w: 293, h: 329 }} track={{ x: 364.68, y: 151.55 }}>
+        <img className="story-art" src={artwork} alt="" draggable={false} />
+        <div className="story-text">
+          {text.split('\n').map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
+        </div>
       </ScrollText>
       <Plaque label="NEXT" y={605.18} onClick={onNext} />
       <Plaque label="BACK" y={675.2} onClick={onBack} />
