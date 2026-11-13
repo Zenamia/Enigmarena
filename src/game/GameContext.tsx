@@ -3,7 +3,7 @@ import { loadCloud, saveCloud } from './cloud'
 import { CASES, HINT_PENALTY, REVEAL_PENALTY, TOTAL_SECONDS } from './data'
 
 export type Screen =
-  | { name: 'title' | 'signin' | 'instructions' | 'rules' | 'loading' | 'welcome' | 'files' | 'epilogue' | 'score' | 'end' }
+  | { name: 'title' | 'signin' | 'continue' | 'instructions' | 'rules' | 'loading' | 'welcome' | 'files' | 'epilogue' | 'score' | 'end' }
   | { name: 'story' | 'invest' | 'hint' | 'puzzle' | 'confirm' | 'solution' | 'solved'; n: number }
 
 export interface GameState {

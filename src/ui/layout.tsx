@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
 import { useAudio } from '../audio/AudioProvider'
 
 /** Taille d'un écran dans le Figma (mobile). Toutes les coordonnées sont celles du design. */
@@ -113,9 +113,51 @@ export function Paper({ y, h = 541.163 }: { y: number; h?: number }) {
   return <img src="/img/ui/paper-panel.webp" alt="" draggable={false} style={{ position: 'absolute', left: 22.01, top: y, width: 382.115, height: h, objectFit: 'contain', pointerEvents: 'none' }} />
 }
 
+const FONT_LOADS = ['700 16px Cinzel', '400 16px Lora', '600 12px "Cormorant Garamond"', '700 16px "Cormorant Garamond"']
+let fontsPromise: Promise<unknown> | null = null
+const fontsReady = () => (fontsPromise ??= Promise.all(FONT_LOADS.map((f) => document.fonts.load(f).catch(() => null))))
+const READY_TIMEOUT_MS = 6000
+
+/** Nombre d'écrans en cours de chargement : le préchargement d'arrière-plan s'efface devant eux. */
+let loadingScreens = 0
+export const isScreenLoading = () => loadingScreens > 0
+
+/**
+ * Vrai quand toutes les images du bloc (et les polices) sont chargées et décodées :
+ * l'écran apparaît d'un seul coup, sans texte qui précède les images.
+ */
+export function useAssetsReady(ref: RefObject<HTMLElement | null>) {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    let alive = true
+    loadingScreens++
+    const decoded = (img: HTMLImageElement) =>
+      img.complete
+        ? img.decode().catch(() => {})
+        : new Promise<void>((res) => {
+            img.addEventListener('load', () => res(), { once: true })
+            img.addEventListener('error', () => res(), { once: true })
+          }).then(() => img.decode().catch(() => {}))
+    const all = Promise.all([fontsReady(), ...Array.from(el.querySelectorAll('img')).map(decoded)])
+    const timeout = new Promise((res) => setTimeout(res, READY_TIMEOUT_MS)) // ne jamais bloquer l'écran
+    void Promise.race([all, timeout]).then(() => {
+      loadingScreens--
+      if (alive) setReady(true)
+    })
+    return () => {
+      alive = false
+    }
+  }, [ref])
+  return ready
+}
+
 export function Screen({ bg, overlay = 0.4, children, className }: { bg: string; overlay?: number; children: ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const ready = useAssetsReady(ref)
   return (
-    <div className={`screen ${className ?? ''}`}>
+    <div ref={ref} className={`screen${ready ? ' is-ready' : ''} ${className ?? ''}`}>
       <img className="screen-bg" src={bg} alt="" draggable={false} />
       {overlay > 0 && <div className="overlay" style={{ background: `rgba(3,3,5,${overlay})` }} />}
       {children}

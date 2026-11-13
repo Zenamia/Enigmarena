@@ -70,14 +70,17 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     for (const [k, m] of Object.entries(MUSIC)) {
       const a = new Audio(m.url)
       a.loop = true
-      a.preload = k === 'ambient' ? 'auto' : 'none'
+      a.preload = 'none' // la musique se télécharge au premier geste du joueur, pas pendant l'affichage du premier écran
       music.current[k as Scene] = a
     }
-    for (const [k, url] of Object.entries(SFX_URLS)) {
-      const el = new Audio(url)
-      el.preload = 'auto'
-      sfx.current[k as Sfx] = el
-    }
+    // Les petits sons arrivent juste après le premier écran, sans lui voler de bande passante.
+    const sfxTimer = window.setTimeout(() => {
+      for (const [k, url] of Object.entries(SFX_URLS)) {
+        const el = new Audio(url)
+        el.preload = 'auto'
+        sfx.current[k as Sfx] = el
+      }
+    }, 1500)
     const unlock = () => {
       unlocked.current = true
       startCurrent()
@@ -86,6 +89,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const m = music.current
     const f = fades.current
     return () => {
+      window.clearTimeout(sfxTimer)
       window.removeEventListener('pointerdown', unlock)
       Object.values(f).forEach((id) => window.clearInterval(id))
       Object.values(m).forEach((a) => a?.pause())
@@ -116,8 +120,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const play = useCallback((name: Sfx) => {
     if (mutedRef.current) return
-    const el = sfx.current[name]
-    if (!el) return
+    const el = (sfx.current[name] ??= new Audio(SFX_URLS[name]))
     el.currentTime = 0
     el.play().catch(() => {})
   }, [])

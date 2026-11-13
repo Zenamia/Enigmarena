@@ -6,13 +6,15 @@ import { GameProvider, useGame, type Screen } from './game/GameContext'
 import { ConfirmScreen, HintScreen, InvestigationScreen, PuzzleScreen, SolutionScreen, SolvedScreen } from './screens/Case'
 import { EndScreen, EpilogueScreen, ScoreScreen } from './screens/Finale'
 import { FilesScreen, StoryScreen, WelcomeScreen } from './screens/Hub'
-import { InstructionsScreen, LoadingScreen, RulesScreen, SignInScreen, TitleScreen } from './screens/Intro'
+import { ContinueScreen, InstructionsScreen, LoadingScreen, RulesScreen, SignInScreen, TitleScreen } from './screens/Intro'
 import { STAGE_H, STAGE_W } from './ui/layout'
+import { preloadAll } from './ui/preload'
 
 function renderScreen(s: Screen) {
   switch (s.name) {
     case 'title': return <TitleScreen />
     case 'signin': return <SignInScreen />
+    case 'continue': return <ContinueScreen />
     case 'instructions': return <InstructionsScreen />
     case 'rules': return <RulesScreen />
     case 'loading': return <LoadingScreen />
@@ -71,6 +73,11 @@ function Stage() {
 }
 
 export default function App() {
+  // Une fois le premier écran affiché, on charge le reste des images en arrière-plan.
+  useEffect(() => {
+    const id = window.setTimeout(preloadAll, 600)
+    return () => window.clearTimeout(id)
+  }, [])
   return (
     <AudioProvider>
       <GameProvider>
