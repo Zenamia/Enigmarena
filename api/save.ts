@@ -5,7 +5,7 @@
  *   POST /api/save {state}   → { ok: true }        (409 { state } si une version plus récente existe déjà)
  *
  * Stockage : base Redis Upstash ajoutée au projet Vercel (variables KV_REST_API_URL / KV_REST_API_TOKEN,
- * ou UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN). Sans elle, l'API répond 501 « not_configured »
+ * UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN, ou <PRÉFIXE>_REST_API_URL / <PRÉFIXE>_REST_API_TOKEN). Sans elle, l'API répond 501 « not_configured »
  * et le jeu continue de sauvegarder localement.
  */
 
@@ -27,9 +27,17 @@ export function teamKey(name: string) {
 }
 
 function redisConfig() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
-  return url && token ? { url, token } : null
+  const env = process.env
+  const url = env.KV_REST_API_URL || env.UPSTASH_REDIS_REST_URL
+  const token = env.KV_REST_API_TOKEN || env.UPSTASH_REDIS_REST_TOKEN
+  if (url && token) return { url, token }
+  // Préfixe personnalisé choisi à la connexion de la base (ex. STORAGE_REST_API_URL + STORAGE_REST_API_TOKEN).
+  for (const name of Object.keys(env)) {
+    const m = name.match(/^(.*)_REST_API_URL$/)
+    const t = m && env[`${m[1]}_REST_API_TOKEN`]
+    if (m && env[name] && t) return { url: env[name] as string, token: t }
+  }
+  return null
 }
 
 async function redis(cfg: { url: string; token: string }, command: (string | number)[]) {
