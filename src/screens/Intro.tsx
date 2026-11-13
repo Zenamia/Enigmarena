@@ -44,11 +44,11 @@ const nameSize = (name: string) => (name.length <= 10 ? 31 : name.length <= 14 ?
 const NOTICE_TEXT: Record<Notice['mode'], { label: string; body: string }> = {
   new: {
     label: 'YOUR TEAM NAME',
-    body: 'This name is your key. Use CONTINUE on the title screen with it to get your progression back if you are ever disconnected.',
+    body: 'Keep this name: it lets you continue your game at any time.',
   },
   offline: {
     label: 'YOUR TEAM NAME',
-    body: 'Online saving is unavailable right now, so your progression stays on this device. Remember this name.',
+    body: 'Online saving is unavailable: your progress stays on this device.',
   },
 }
 
@@ -68,7 +68,7 @@ function TeamNotice({ name, notice, onContinue, onBack }: { name: string; notice
           {name}
         </Txt>
       </Box>
-      <Txt size={15.5} ls={0.05} cx={207} cy={447.64} w={196} lh={1.3}>
+      <Txt size={17} ls={0.05} cx={209} cy={447.64} w={190} lh={1.3}>
         {t.body}
       </Txt>
       <Plaque label="CONTINUE" y={605.18} onClick={onContinue} />
@@ -141,8 +141,13 @@ export function SignInScreen() {
         onEnter={submit}
       />
       {bad === 'taken' && <FieldMessage>This name is already taken. Choose another one, or go back and press CONTINUE.</FieldMessage>}
-      <Plaque label={busy ? '...' : 'CONTINUE'} y={722} center sound={null} disabled={busy} onClick={submit} />
-      <Plaque label="BACK" y={792} center onClick={() => go({ name: 'title' })} />
+      {/* Les boutons de l'écran sont retirés quand la fenêtre est ouverte, pour ne pas transparaître derrière. */}
+      {!notice && (
+        <>
+          <Plaque label={busy ? '...' : 'CONTINUE'} y={722} center sound={null} disabled={busy} onClick={submit} />
+          <Plaque label="BACK" y={792} center onClick={() => go({ name: 'title' })} />
+        </>
+      )}
       {notice && <TeamNotice name={name} notice={notice} onContinue={() => newTeam(name, teamKey(name) === teamKey(UNLOCK_CODE))} onBack={() => setNotice(null)} />}
     </Screen>
   )
