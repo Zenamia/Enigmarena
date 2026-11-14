@@ -11,7 +11,7 @@
 
 const MAX_BODY = 8_000
 const CASE_COUNT = 14
-const SCREENS = ['title', 'signin', 'instructions', 'rules', 'loading', 'welcome', 'files', 'epilogue', 'score', 'end']
+const SCREENS = ['title', 'language', 'signin', 'instructions', 'rules', 'loading', 'welcome', 'files', 'epilogue', 'score', 'end']
 const CASE_SCREENS = ['story', 'invest', 'hint', 'puzzle', 'confirm', 'solution', 'solved']
 
 const json = (body: unknown, status = 200) =>
@@ -67,6 +67,7 @@ function cleanState(raw: any) {
   else if (CASE_SCREENS.includes(sn) && Number.isInteger(raw.screen.n) && raw.screen.n >= 1 && raw.screen.n <= CASE_COUNT) screen = { name: sn, n: raw.screen.n }
   return {
     screen,
+    lang: raw.lang === 'fr' ? 'fr' : 'en',
     team,
     confirmed: true,
     startedAt: num(raw.startedAt),

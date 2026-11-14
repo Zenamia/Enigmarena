@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAudio } from '../audio/AudioProvider'
-import { CASES, isCorrect } from '../game/data'
+import { CASE_COUNT, isCorrect } from '../game/data'
 import { useGame } from '../game/GameContext'
-import { Box, Header, Paper, PaperInput, Plaque, Screen, Txt, caseRibbon } from '../ui/layout'
+import { useI18n } from '../i18n'
+import { Box, Header, Paper, PaperInput, Plaque, Screen, Txt } from '../ui/layout'
 import { PuzzleViewer } from './puzzles'
 
 function ActionCard({ x, y, label, onClick }: { x: number; y: number; label: string; onClick: () => void }) {
@@ -29,23 +30,24 @@ function ActionCard({ x, y, label, onClick }: { x: number; y: number; label: str
 export function InvestigationScreen({ n }: { n: number }) {
   const { go, openHint } = useGame()
   const { play } = useAudio()
+  const { ui } = useI18n()
   return (
     <Screen bg="/img/bg/board.webp">
-      <Header ribbon={caseRibbon(n)} />
+      <Header ribbon={ui.fileRibbon(n)} />
       <ActionCard
         x={40.01}
         y={301.09}
-        label="HINT"
+        label={ui.hint}
         onClick={() => {
           openHint(n)
           go({ name: 'hint', n })
         }}
       />
-      <ActionCard x={213.06} y={301.09} label="CLUE" onClick={() => go({ name: 'puzzle', n })} />
+      <ActionCard x={213.06} y={301.09} label={ui.clue} onClick={() => go({ name: 'puzzle', n })} />
       <button
         type="button"
         className="action"
-        aria-label="Reveal the solution"
+        aria-label={ui.revealSolution}
         onClick={() => {
           play('button')
           go({ name: 'confirm', n })
@@ -54,44 +56,46 @@ export function InvestigationScreen({ n }: { n: number }) {
       >
         <img src="/img/ui/action-reveal.webp" alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
         <Txt size={16.005} ls={0.8002} color="#0b0e13" cx={174.55} cy={33.01} w={115.035}>
-          REVEAL
+          {ui.reveal}
         </Txt>
       </button>
-      <Plaque label="INSERT SOLUTION" y={605.18} onClick={() => go({ name: 'solution', n })} />
-      <Plaque label="BACK" y={675.2} onClick={() => go({ name: 'story', n })} />
+      <Plaque label={ui.insertSolution} y={605.18} onClick={() => go({ name: 'solution', n })} />
+      <Plaque label={ui.back} y={675.2} onClick={() => go({ name: 'story', n })} />
     </Screen>
   )
 }
 
 export function HintScreen({ n }: { n: number }) {
   const { go } = useGame()
+  const { ui, content } = useI18n()
   return (
     <Screen bg="/img/bg/board.webp">
-      <Header ribbon={caseRibbon(n)} />
+      <Header ribbon={ui.fileRibbon(n)} />
       <Paper y={88.03} />
       <Txt font="cinzel" size={42.013} ls={0.8403} lh={1.12} cx={213.06} y={197.06} w={180.054}>
-        HINT
+        {ui.hint}
       </Txt>
       <Box cx={213.06} cy={396.62} w={278.084} h={295.089} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Txt size={23.007} ls={0.069} w={278.084} style={{ position: 'static' }}>
-          {CASES[n - 1].hint}
+          {content.cases[n - 1].hint}
         </Txt>
       </Box>
-      <Plaque label="ENTER SOLUTION" y={605.18} onClick={() => go({ name: 'solution', n })} />
-      <Plaque label="BACK" y={675.2} onClick={() => go({ name: 'invest', n })} />
+      <Plaque label={ui.enterSolution} y={605.18} onClick={() => go({ name: 'solution', n })} />
+      <Plaque label={ui.back} y={675.2} onClick={() => go({ name: 'invest', n })} />
     </Screen>
   )
 }
 
 export function PuzzleScreen({ n }: { n: number }) {
   const { go } = useGame()
+  const { ui } = useI18n()
   return (
     <Screen bg="/img/bg/board.webp">
-      <Header ribbon={caseRibbon(n)} />
+      <Header ribbon={ui.fileRibbon(n)} />
       <Paper y={82.02} />
       <PuzzleViewer n={n} />
-      <Plaque label="ENTER SOLUTION" y={605.18} onClick={() => go({ name: 'solution', n })} />
-      <Plaque label="BACK" y={675.2} onClick={() => go({ name: 'invest', n })} />
+      <Plaque label={ui.enterSolution} y={605.18} onClick={() => go({ name: 'solution', n })} />
+      <Plaque label={ui.back} y={675.2} onClick={() => go({ name: 'invest', n })} />
     </Screen>
   )
 }
@@ -108,27 +112,28 @@ function OpenCase({ y, children }: { y: number; children: ReactNode }) {
 
 export function ConfirmScreen({ n }: { n: number }) {
   const { state, go, reveal } = useGame()
+  const { ui } = useI18n()
   const already = state.revealed.includes(n)
   return (
     <Screen bg="/img/bg/board.webp">
-      <Header ribbon={caseRibbon(n)} />
+      <Header ribbon={ui.fileRibbon(n)} />
       <OpenCase y={98.03}>
-        <Txt font="cinzel" size={31.009} ls={0.6202} color="#f0deb2" lh={1.12} cx={213.07} y={231.07} w={300.09}>
-          REVEAL THE SOLUTION?
+        <Txt font="cinzel" size={31.009} ls={0.6202} color="#f0deb2" lh={1.12} cx={213.07} y={231.07} w={300.09} pre>
+          {ui.revealQuestion}
         </Txt>
         <Txt size={18.005} ls={0.054} cx={213.07} cy={447.64} w={182.055}>
-          {already ? 'You have already paid for this revelation.' : 'This revelation costs 5 minutes.'}
+          {already ? ui.revealPaid : ui.revealCost}
         </Txt>
       </OpenCase>
       <Plaque
-        label="REVEAL SOLUTION"
+        label={ui.revealSolution}
         y={605.18}
         onClick={() => {
           reveal(n)
           go({ name: 'solution', n })
         }}
       />
-      <Plaque label="BACK" y={675.2} onClick={() => go({ name: 'invest', n })} />
+      <Plaque label={ui.back} y={675.2} onClick={() => go({ name: 'invest', n })} />
     </Screen>
   )
 }
@@ -136,7 +141,8 @@ export function ConfirmScreen({ n }: { n: number }) {
 export function SolutionScreen({ n }: { n: number }) {
   const { state, go, solve } = useGame()
   const { play } = useAudio()
-  const c = CASES[n - 1]
+  const { ui, content } = useI18n()
+  const c = content.cases[n - 1]
   const [value, setValue] = useState(state.revealed.includes(n) ? c.answer : '')
   const [status, setStatus] = useState<'idle' | 'wrong' | 'good'>('idle')
   const timer = useRef<number>(0)
@@ -157,12 +163,12 @@ export function SolutionScreen({ n }: { n: number }) {
 
   return (
     <Screen bg="/img/bg/board.webp">
-      <Header ribbon={caseRibbon(n)} />
+      <Header ribbon={ui.fileRibbon(n)} />
       <PaperInput
         x={70.02}
         y={321.1}
         value={value}
-        placeholder="INSERT SOLUTION"
+        placeholder={ui.insertSolution}
         state={status === 'wrong' ? 'wrong' : 'idle'}
         readOnly={status === 'good'}
         autoFocus
@@ -172,29 +178,30 @@ export function SolutionScreen({ n }: { n: number }) {
         }}
         onEnter={submit}
       />
-      <Plaque label="INSERT SOLUTION" y={605.18} sound={null} disabled={status === 'good'} onClick={submit} />
-      <Plaque label="BACK" y={675.2} disabled={status === 'good'} onClick={() => go({ name: 'invest', n })} />
+      <Plaque label={ui.insertSolution} y={605.18} sound={null} disabled={status === 'good'} onClick={submit} />
+      <Plaque label={ui.back} y={675.2} disabled={status === 'good'} onClick={() => go({ name: 'invest', n })} />
     </Screen>
   )
 }
 
 export function SolvedScreen({ n }: { n: number }) {
   const { go } = useGame()
-  const c = CASES[n - 1]
+  const { ui, content } = useI18n()
+  const c = content.cases[n - 1]
   return (
     <Screen bg="/img/bg/solved.webp" overlay={0}>
       <OpenCase y={155.05}>
-        <Txt font="cinzel" size={32.01} ls={0.6402} color="#f0deb2" lh={1.12} cx={213.07} y={288.09} w={300.09}>
-          A BRILLIANT DEDUCTION
+        <Txt font="cinzel" size={32.01} ls={0.6402} color="#f0deb2" lh={1.12} cx={213.07} y={288.09} w={300.09} pre>
+          {ui.brilliant}
         </Txt>
         <Txt size={16.005} ls={0.048} cx={213.07} cy={504.66} w={182.055}>
           {c.solved}
         </Txt>
       </OpenCase>
       <Txt size={16.005} ls={0.048} color="#e59a4a" cx={213.06} y={257.08} w={250.075}>
-        {`FILE ${String(n).padStart(2, '0')} SOLVED`}
+        {ui.fileSolved(n)}
       </Txt>
-      <Plaque label="NEXT" y={675.2} onClick={() => go(n === CASES.length ? { name: 'epilogue' } : { name: 'files' })} />
+      <Plaque label={ui.next} y={675.2} onClick={() => go(n === CASE_COUNT ? { name: 'epilogue' } : { name: 'files' })} />
     </Screen>
   )
 }

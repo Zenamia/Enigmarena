@@ -1,13 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react'
 import { loadCloud, saveCloud } from './cloud'
-import { CASES, HINT_PENALTY, REVEAL_PENALTY, TOTAL_SECONDS } from './data'
+import { isLang, type Lang } from '../i18n/lang'
+import { CASE_COUNT, HINT_PENALTY, REVEAL_PENALTY, TOTAL_SECONDS } from './data'
 
 export type Screen =
-  | { name: 'title' | 'signin' | 'continue' | 'instructions' | 'rules' | 'loading' | 'welcome' | 'files' | 'epilogue' | 'score' | 'end' }
+  | { name: 'title' | 'language' | 'signin' | 'continue' | 'instructions' | 'rules' | 'loading' | 'welcome' | 'files' | 'epilogue' | 'score' | 'end' }
   | { name: 'story' | 'invest' | 'hint' | 'puzzle' | 'confirm' | 'solution' | 'solved'; n: number }
 
 export interface GameState {
   screen: Screen
+  /** Langue de la partie (choisie au lancement d'une nouvelle partie, puis enregistrée avec elle). */
+  lang: Lang
   team: string
   /** Le nom d'équipe a été validé : c'est lui qui retrouve la partie, sur n'importe quel appareil. */
   confirmed: boolean
@@ -24,6 +27,7 @@ export interface GameState {
 
 type Action =
   | { type: 'go'; screen: Screen }
+  | { type: 'lang'; lang: Lang }
   | { type: 'team'; team: string }
   | { type: 'start' }
   | { type: 'hint'; n: number }
@@ -36,6 +40,7 @@ type Action =
 const KEY = 'enigmarena:game:v1'
 const INITIAL: GameState = {
   screen: { name: 'title' },
+  lang: 'en',
   team: '',
   confirmed: false,
   startedAt: null,
@@ -53,6 +58,8 @@ function step(s: GameState, a: Action): GameState {
   switch (a.type) {
     case 'go':
       return { ...s, screen: a.screen }
+    case 'lang':
+      return { ...s, lang: a.lang }
     case 'team':
       return { ...s, team: a.team, confirmed: false }
     case 'start':
@@ -63,15 +70,15 @@ function step(s: GameState, a: Action): GameState {
       return { ...s, revealed: add(s.revealed, a.n) }
     case 'solve': {
       const solved = add(s.solved, a.n)
-      const done = solved.length === CASES.length
+      const done = solved.length === CASE_COUNT
       return { ...s, solved, finishedAt: done && !s.finishedAt ? Date.now() : s.finishedAt }
     }
     case 'newTeam':
-      return { ...INITIAL, team: a.team, unlockAll: a.unlockAll, confirmed: true, screen: { name: 'instructions' } }
+      return { ...INITIAL, lang: s.lang, team: a.team, unlockAll: a.unlockAll, confirmed: true, screen: { name: 'instructions' } }
     case 'replace':
       return a.state
     case 'reset':
-      return INITIAL
+      return { ...INITIAL, lang: s.lang }
   }
 }
 
@@ -83,7 +90,7 @@ function reducer(s: GameState, a: Action): GameState {
 
 /** Reprise d'une sauvegarde reçue : on repart du hub (ou des instructions si la partie n'a pas commencé). */
 export function resume(s: GameState): GameState {
-  return { ...INITIAL, ...s, confirmed: true, screen: { name: s.startedAt ? 'files' : 'instructions' } }
+  return { ...INITIAL, ...s, lang: isLang(s.lang) ? s.lang : 'en', confirmed: true, screen: { name: s.startedAt ? 'files' : 'instructions' } }
 }
 
 function load(): GameState {
@@ -121,6 +128,7 @@ export function reportFor(s: GameState): Report {
 interface GameApi {
   state: GameState
   go: (screen: Screen) => void
+  setLang: (lang: Lang) => void
   setTeam: (team: string) => void
   start: () => void
   openHint: (n: number) => void
@@ -194,11 +202,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const go = useCallback((screen: Screen) => dispatch({ type: 'go', screen }), [])
   const api = useMemo<GameApi>(() => {
     let current = 1
-    while (state.solved.includes(current) && current <= CASES.length) current++
+    while (state.solved.includes(current) && current <= CASE_COUNT) current++
     return {
       state,
       go,
       current,
+      setLang: (lang) => dispatch({ type: 'lang', lang }),
       setTeam: (team) => dispatch({ type: 'team', team }),
       start: () => dispatch({ type: 'start' }),
       openHint: (n) => dispatch({ type: 'hint', n }),

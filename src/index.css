@@ -104,3 +104,34 @@ img { -webkit-user-drag: none; user-select: none; }
 /* --- Fenêtre (popup) par-dessus un écran --- */
 .modal { position: absolute; inset: 0; z-index: 10; background: rgba(3, 3, 5, 0.72); opacity: 0; transition: opacity 0.22s ease; }
 .modal.is-ready { opacity: 1; }
+
+/* --- Choix de la langue : drapeaux encadrés de laiton --- */
+.flag-btn { position: absolute; width: 150px; padding: 0; border: 0; background: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 14px; transition: transform 0.15s ease, filter 0.15s ease; }
+.flag-frame {
+  position: relative; display: block; width: 150px; height: 104px; padding: 6px; border-radius: 12px;
+  background: linear-gradient(140deg, #f0d58b 0%, #9b6a22 38%, #f6e2a4 52%, #6e4812 100%);
+  box-shadow: 0 6px 12px rgba(40, 20, 8, 0.5);
+}
+.flag-frame svg { display: block; width: 100%; height: 100%; border-radius: 6px; box-shadow: 0 0 0 1.5px rgba(32, 16, 6, 0.9); }
+.flag-frame::after { content: ''; position: absolute; inset: 6px; border-radius: 6px; pointer-events: none; background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 42%, rgba(0, 0, 0, 0.3)); box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.45); }
+.flag-label { font-family: var(--font-cinzel); font-weight: 700; font-size: 18px; letter-spacing: 1.4px; color: #8f0f0e; }
+.flag-btn:hover { transform: translateY(-3px); filter: brightness(1.12); }
+.flag-btn:active { transform: translateY(0) scale(0.98); }
+.flag-btn:focus-visible { outline: 2px solid #f0deb2; outline-offset: 6px; border-radius: 14px; }
+
+/* --- Générique de fin (« The End ») : le texte monte et s'estompe en haut et en bas --- */
+.credits {
+  overflow: hidden; text-align: center; color: #f0deb2;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 15%, #000 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 15%, #000 85%, transparent 100%);
+  touch-action: none;
+}
+.credits-text {
+  width: 278px; margin: 0 auto; will-change: transform;
+  font-family: var(--font-body); font-size: calc(23.007px * var(--body-scale)); line-height: 1.5; letter-spacing: 0.069px;
+  text-shadow: 0 0 10px rgba(240, 222, 178, 0.35), 0 2px 4px rgba(0, 0, 0, 0.85);
+}
+.credits-text p { margin: 0; }
+/* Sans animation : le texte reste visible et on peut le faire défiler à la main. */
+.credits--still { overflow-y: auto; scrollbar-width: none; touch-action: pan-y; -webkit-mask-image: none; mask-image: none; }
+.credits--still::-webkit-scrollbar { display: none; }

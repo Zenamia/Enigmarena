@@ -6,13 +6,14 @@ import { GameProvider, useGame, type Screen } from './game/GameContext'
 import { ConfirmScreen, HintScreen, InvestigationScreen, PuzzleScreen, SolutionScreen, SolvedScreen } from './screens/Case'
 import { EndScreen, EpilogueScreen, ScoreScreen } from './screens/Finale'
 import { FilesScreen, StoryScreen, WelcomeScreen } from './screens/Hub'
-import { ContinueScreen, InstructionsScreen, LoadingScreen, RulesScreen, SignInScreen, TitleScreen } from './screens/Intro'
+import { ContinueScreen, InstructionsScreen, LanguageScreen, LoadingScreen, RulesScreen, SignInScreen, TitleScreen } from './screens/Intro'
 import { STAGE_H, STAGE_W } from './ui/layout'
 import { preloadAll } from './ui/preload'
 
 function renderScreen(s: Screen) {
   switch (s.name) {
     case 'title': return <TitleScreen />
+    case 'language': return <LanguageScreen />
     case 'signin': return <SignInScreen />
     case 'continue': return <ContinueScreen />
     case 'instructions': return <InstructionsScreen />
@@ -54,6 +55,10 @@ function Stage() {
   const { state } = useGame()
   const s = useStageScale()
   const screen = state.screen
+  // La langue de la partie s'applique aussi au document (lecteurs d'écran, césure).
+  useEffect(() => {
+    document.documentElement.lang = state.lang
+  }, [state.lang])
   const key = 'n' in screen ? `${screen.name}-${screen.n}` : screen.name
   return (
     <div className="viewport">

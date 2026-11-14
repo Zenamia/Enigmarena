@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useI18n } from '../i18n'
 import { IconButton } from './IconButton'
 
 export function FullscreenButton() {
   const [isFs, setIsFs] = useState(!!document.fullscreenElement)
+  const { ui } = useI18n()
 
   useEffect(() => {
     const onChange = () => setIsFs(!!document.fullscreenElement)
@@ -18,5 +20,5 @@ export function FullscreenButton() {
     else void document.documentElement.requestFullscreen()
   }
 
-  return <IconButton icon="/ui/btn-fullscreen.webp" label={isFs ? 'Exit full screen' : 'Full screen'} onClick={toggle} />
+  return <IconButton icon="/ui/btn-fullscreen.webp" label={isFs ? ui.exitFullscreen : ui.fullscreen} onClick={toggle} />
 }

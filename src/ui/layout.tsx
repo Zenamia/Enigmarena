@@ -104,7 +104,9 @@ export function Plaque({ label, y, x = 100.03, center, onClick, disabled, sound 
       }}
     >
       <img className="plaque-art" src="/img/ui/plaque.webp" alt="" draggable={false} style={{ width: 228.069, height: 76.023 }} />
-      <span className="plaque-label">{label}</span>
+      <span className="plaque-label" style={label.length > 16 ? { fontSize: `calc(${(16.005 * 16.5) / label.length}px * var(--body-scale))` } : undefined}>
+        {label}
+      </span>
     </button>
   )
 }
@@ -181,8 +183,6 @@ export function Header({ ribbon }: { ribbon?: string }) {
   )
 }
 
-export const caseRibbon = (n: number) => `CASE FILE ${String(n).padStart(2, '0')}`
-
 /** Barre de défilement décorative (rail + gemme), synchronisée avec un bloc de texte. */
 export function ScrollBar({ x, y, frac, onDrag }: { x: number; y: number; frac: number; onDrag: (f: number) => void }) {
   const RANGE = 190
@@ -219,18 +219,14 @@ export function ScrollText({
   children,
   size = 20.006,
   className,
-  autoScroll,
 }: {
   box: { x: number; y: number; w: number; h: number }
   track: { x: number; y: number }
   children: ReactNode
   size?: number
   className?: string
-  /** Défilement automatique lent (px/s) après un délai (ms) ; s'arrête dès que le joueur reprend la main. */
-  autoScroll?: { speed: number; delay: number }
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const stopAuto = useRef<() => void>(() => {})
   const [frac, setFrac] = useState(0)
   const onScroll = useCallback(() => {
     const el = ref.current
@@ -240,47 +236,7 @@ export function ScrollText({
   }, [])
   useEffect(onScroll, [onScroll])
 
-  const speed = autoScroll?.speed
-  const delay = autoScroll?.delay
-  useEffect(() => {
-    const el = ref.current
-    if (!el || speed === undefined || delay === undefined) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let raf = 0
-    let stopped = false
-    let pos = 0
-    let last = 0
-    const t0 = performance.now() + delay
-    const stop = () => {
-      stopped = true
-      cancelAnimationFrame(raf)
-    }
-    stopAuto.current = stop
-    const tick = (t: number) => {
-      if (stopped) return
-      if (t >= t0) {
-        if (!last) {
-          last = t
-          pos = el.scrollTop
-        }
-        pos += (speed * (t - last)) / 1000
-        last = t
-        el.scrollTop = pos
-        if (pos >= el.scrollHeight - el.clientHeight) return // arrivé au bout
-      }
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
-    events.forEach((e) => el.addEventListener(e, stop, { passive: true }))
-    return () => {
-      stop()
-      events.forEach((e) => el.removeEventListener(e, stop))
-    }
-  }, [speed, delay])
-
   const drag = (f: number) => {
-    stopAuto.current()
     const el = ref.current
     if (el) el.scrollTop = f * (el.scrollHeight - el.clientHeight)
   }

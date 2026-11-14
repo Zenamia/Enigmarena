@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAudio } from '../audio/AudioProvider'
 import { loadCloud } from '../game/cloud'
-import { INSTRUCTIONS, CASES, UNLOCK_CODE, teamKey } from '../game/data'
+import { UNLOCK_CODE, teamKey } from '../game/data'
 import { useGame } from '../game/GameContext'
+import { useI18n, type Lang } from '../i18n'
 import { Box, Paper, PaperInput, Plaque, Screen, ScrollText, Txt, useAssetsReady } from '../ui/layout'
 
 /** « THE SHADOW RIDDLE » : titre en trois lignes, commun au titre, au chargement et à la fin. */
@@ -24,14 +25,74 @@ export function TitleBlock() {
 
 export function TitleScreen() {
   const { go } = useGame()
+  const { ui } = useI18n()
   return (
     <Screen bg="/img/bg/title.webp" overlay={0.16}>
       <TitleBlock />
-      <Txt size={22.007} ls={0.6602} color="#f7f2e5" cx={213.06} y={253.08} w={340.102} pre>
-        {'Fourteen files. Ninety minutes.\nOne truth buried beneath the fog.'}
+      <Txt size={22.007} ls={0.6602} color="#f7f2e5" cx={213.06} y={253.08} w={390} pre>
+        {ui.tagline}
       </Txt>
-      <Plaque label="NEW GAME" y={717.2} center onClick={() => go({ name: 'signin' })} />
-      <Plaque label="CONTINUE" y={787.24} center onClick={() => go({ name: 'continue' })} />
+      <Plaque label={ui.newGame} y={717.2} center onClick={() => go({ name: 'language' })} />
+      <Plaque label={ui.continue} y={787.24} center onClick={() => go({ name: 'continue' })} />
+    </Screen>
+  )
+}
+
+/** Drapeaux dessinés en vectoriel (pas d'image à charger). */
+function FlagFr() {
+  return (
+    <svg viewBox="0 0 3 2" preserveAspectRatio="none" aria-hidden="true">
+      <rect width="1" height="2" fill="#1f3f8f" />
+      <rect x="1" width="1" height="2" fill="#f4efe4" />
+      <rect x="2" width="1" height="2" fill="#c3262e" />
+    </svg>
+  )
+}
+
+function FlagEn() {
+  return (
+    <svg viewBox="0 0 60 40" preserveAspectRatio="none" aria-hidden="true">
+      <rect width="60" height="40" fill="#1f3a78" />
+      <path d="M0 0L60 40M60 0L0 40" stroke="#f4efe4" strokeWidth="7" />
+      <path d="M0 0L60 40M60 0L0 40" stroke="#c3262e" strokeWidth="2.4" />
+      <path d="M30 0V40M0 20H60" stroke="#f4efe4" strokeWidth="12" />
+      <path d="M30 0V40M0 20H60" stroke="#c3262e" strokeWidth="7" />
+    </svg>
+  )
+}
+
+/** Drapeau encadré de laiton, comme les plaques du jeu. */
+function FlagButton({ x, y, label, flag, language, onPick }: { x: number; y: number; label: string; flag: ReactNode; language: string; onPick: () => void }) {
+  return (
+    <button type="button" className="flag-btn" lang={language} aria-label={label} onClick={onPick} style={{ left: x, top: y }}>
+      <span className="flag-frame">{flag}</span>
+      <span className="flag-label">{label}</span>
+    </button>
+  )
+}
+
+/** Choix de la langue de la partie (NOUVELLE PARTIE uniquement : une partie reprise garde sa langue). */
+export function LanguageScreen() {
+  const { go, setLang } = useGame()
+  const { play } = useAudio()
+  const { ui } = useI18n()
+  const pick = (l: Lang) => {
+    play('button')
+    setLang(l)
+    go({ name: 'signin' })
+  }
+  return (
+    <Screen bg="/img/bg/paper-room.webp">
+      <Paper y={193.06} />
+      <Txt font="cinzel" size={25} ls={0.5} color="#8f0f0e" lh={1.12} cx={213.06} cy={298.89} w={300}>
+        LANGUE · LANGUAGE
+      </Txt>
+      <Txt size={19} ls={0.4} lh={1.35} cx={213.06} y={364} w={300} pre>
+        {'Choisissez votre langue\nChoose your language'}
+      </Txt>
+      <FlagButton x={52} y={452} label="FRANÇAIS" language="fr" flag={<FlagFr />} onPick={() => pick('fr')} />
+      <FlagButton x={228} y={452} label="ENGLISH" language="en" flag={<FlagEn />} onPick={() => pick('en')} />
+      <Plaque label={ui.back} y={792} center onClick={() => go({ name: 'title' })} />
     </Screen>
   )
 }
@@ -41,20 +102,10 @@ type Notice = { mode: 'new' | 'offline' }
 /** Taille du nom d'équipe dans la fenêtre, selon sa longueur. */
 const nameSize = (name: string) => (name.length <= 10 ? 31 : name.length <= 14 ? 26 : name.length <= 18 ? 21.5 : 18)
 
-const NOTICE_TEXT: Record<Notice['mode'], { label: string; body: string }> = {
-  new: {
-    label: 'YOUR TEAM NAME',
-    body: 'Keep this name: it lets you continue your game at any time.',
-  },
-  offline: {
-    label: 'YOUR TEAM NAME',
-    body: 'Online saving is unavailable: your progress stays on this device.',
-  },
-}
-
 /** Fenêtre « nom d'équipe » (mallette du jeu) : rappelle que ce nom permet de se reconnecter. */
 function TeamNotice({ name, notice, onContinue, onBack }: { name: string; notice: Notice; onContinue: () => void; onBack: () => void }) {
-  const t = NOTICE_TEXT[notice.mode]
+  const { ui } = useI18n()
+  const t = { label: ui.teamLabel, body: notice.mode === 'new' ? ui.noticeNew : ui.noticeOffline }
   const ref = useRef<HTMLDivElement>(null)
   const ready = useAssetsReady(ref)
   return (
@@ -71,8 +122,8 @@ function TeamNotice({ name, notice, onContinue, onBack }: { name: string; notice
       <Txt size={17} ls={0.05} cx={209} cy={447.64} w={190} lh={1.3}>
         {t.body}
       </Txt>
-      <Plaque label="CONTINUE" y={605.18} onClick={onContinue} />
-      <Plaque label="BACK" y={675.2} onClick={onBack} />
+      <Plaque label={ui.continue} y={605.18} onClick={onContinue} />
+      <Plaque label={ui.back} y={675.2} onClick={onBack} />
     </div>
   )
 }
@@ -92,6 +143,7 @@ const cleanName = (s: string) => s.trim().replace(/\s+/g, ' ')
 export function SignInScreen() {
   const { state, setTeam, newTeam, go } = useGame()
   const { play } = useAudio()
+  const { ui } = useI18n()
   const [bad, setBad] = useState<null | 'empty' | 'taken'>(null)
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState<Notice | null>(null)
@@ -121,16 +173,16 @@ export function SignInScreen() {
     <Screen bg="/img/bg/paper-room.webp">
       <Paper y={193.06} />
       <Txt font="cinzel" size={30.009} ls={0.6002} color="#8f0f0e" lh={1.12} cx={213.06} cy={298.89} w={286.086}>
-        SIGN IN
+        {ui.signIn}
       </Txt>
       <Txt size={20.006} ls={0.6002} cx={213.06} y={401.12} w={270.081} pre>
-        {'What shall we call your\ninvestigation team?'}
+        {ui.signInPrompt}
       </Txt>
       <PaperInput
         x={70.02}
         y={505.15}
         value={state.team}
-        placeholder="INSERT NAME"
+        placeholder={ui.insertName}
         maxLength={22}
         state={bad ? 'wrong' : 'idle'}
         readOnly={busy}
@@ -140,12 +192,12 @@ export function SignInScreen() {
         }}
         onEnter={submit}
       />
-      {bad === 'taken' && <FieldMessage>This name is already taken. Choose another one, or go back and press CONTINUE.</FieldMessage>}
+      {bad === 'taken' && <FieldMessage>{ui.nameTaken}</FieldMessage>}
       {/* Les boutons de l'écran sont retirés quand la fenêtre est ouverte, pour ne pas transparaître derrière. */}
       {!notice && (
         <>
-          <Plaque label={busy ? '...' : 'CONTINUE'} y={722} center sound={null} disabled={busy} onClick={submit} />
-          <Plaque label="BACK" y={792} center onClick={() => go({ name: 'title' })} />
+          <Plaque label={busy ? '...' : ui.continue} y={722} center sound={null} disabled={busy} onClick={submit} />
+          <Plaque label={ui.back} y={792} center onClick={() => go({ name: 'language' })} />
         </>
       )}
       {notice && <TeamNotice name={name} notice={notice} onContinue={() => newTeam(name, teamKey(name) === teamKey(UNLOCK_CODE))} onBack={() => setNotice(null)} />}
@@ -157,6 +209,7 @@ export function SignInScreen() {
 export function ContinueScreen() {
   const { state, restore, go } = useGame()
   const { play } = useAudio()
+  const { ui } = useI18n()
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [problem, setProblem] = useState<null | 'empty' | 'unknown' | 'offline'>(null)
@@ -189,16 +242,16 @@ export function ContinueScreen() {
     <Screen bg="/img/bg/paper-room.webp">
       <Paper y={193.06} />
       <Txt font="cinzel" size={30.009} ls={0.6002} color="#8f0f0e" lh={1.12} cx={213.06} cy={298.89} w={286.086}>
-        CONTINUE
+        {ui.continue}
       </Txt>
-      <Txt size={20.006} ls={0.6002} cx={213.06} y={401.12} w={270.081} pre>
-        {'Enter your team name\nto resume your investigation.'}
+      <Txt size={20.006} ls={0.6002} cx={213.06} y={401.12} w={310} pre>
+        {ui.continuePrompt}
       </Txt>
       <PaperInput
         x={70.02}
         y={505.15}
         value={name}
-        placeholder="INSERT NAME"
+        placeholder={ui.insertName}
         maxLength={22}
         state={problem ? 'wrong' : 'idle'}
         readOnly={busy}
@@ -209,24 +262,25 @@ export function ContinueScreen() {
         }}
         onEnter={submit}
       />
-      {problem === 'unknown' && <FieldMessage>No saved game found for this name. Check the spelling, or start a NEW GAME.</FieldMessage>}
-      {problem === 'offline' && <FieldMessage>Could not reach the saved games. Check your connection and try again.</FieldMessage>}
-      <Plaque label={busy ? '...' : 'CONTINUE'} y={722} center sound={null} disabled={busy} onClick={submit} />
-      <Plaque label="BACK" y={792} center onClick={() => go({ name: 'title' })} />
+      {problem === 'unknown' && <FieldMessage>{ui.noSave}</FieldMessage>}
+      {problem === 'offline' && <FieldMessage>{ui.offlineSave}</FieldMessage>}
+      <Plaque label={busy ? '...' : ui.continue} y={722} center sound={null} disabled={busy} onClick={submit} />
+      <Plaque label={ui.back} y={792} center onClick={() => go({ name: 'title' })} />
     </Screen>
   )
 }
 
 export function InstructionsScreen() {
   const { go } = useGame()
+  const { ui, content } = useI18n()
   return (
     <Screen bg="/img/bg/paper-room.webp">
       <Paper y={193.06} />
       <Txt font="cinzel" size={27.008} ls={0.5402} color="#8f0f0e" lh={1.12} cx={213.06} cy={295.09} w={320.096}>
-        INSTRUCTIONS
+        {ui.instructions}
       </Txt>
       <ScrollText box={{ x: 67.67, y: 339.88, w: 290, h: 178 }} track={{ x: 364.35, y: 276.88 }}>
-        {INSTRUCTIONS.split('\n').map((p) => (
+        {content.instructions.split('\n').map((p) => (
           <p key={p}>{p}</p>
         ))}
       </ScrollText>
@@ -234,15 +288,16 @@ export function InstructionsScreen() {
         14
       </Txt>
       <Txt size={18.005} ls={0.054} cx={213.06} y={625.18} w={240.072} pre>
-        {'SEALED FILES\nOPENED IN ORDER'}
+        {ui.sealed}
       </Txt>
-      <Plaque label="CONTINUE" y={787.24} center onClick={() => go({ name: 'rules' })} />
+      <Plaque label={ui.continue} y={787.24} center onClick={() => go({ name: 'rules' })} />
     </Screen>
   )
 }
 
 export function RulesScreen() {
   const { go, start } = useGame()
+  const { ui } = useI18n()
   const cost = (y: number, cy: number, bg: string, label: string) => (
     <>
       <Box x={72.02} y={y} w={286.086} h={72.022} style={{ background: bg, borderRadius: 12.004 }} />
@@ -255,15 +310,15 @@ export function RulesScreen() {
     <Screen bg="/img/bg/paper-room.webp">
       <Paper y={193.06} />
       <Txt font="cinzel" size={27.008} ls={0.5402} color="#8f0f0e" lh={1.12} cx={213.06} cy={314.59} w={270.081}>
-        THE CLOCK IS LISTENING
+        {ui.rulesTitle}
       </Txt>
       <Txt size={21.006} ls={0.6302} cx={213.06} y={368.11} w={270.081} pre>
-        {'Every request for help costs precious time.\nChoose carefully, the shadows are counting too.'}
+        {ui.rulesText}
       </Txt>
-      {cost(503.15, 536.96, 'rgba(102,20,14,0.94)', 'HINT      −2:00')}
-      {cost(593.18, 626.99, 'rgba(46,20,14,0.96)', 'REVEAL   −5:00')}
+      {cost(503.15, 536.96, 'rgba(102,20,14,0.94)', ui.ruleHint)}
+      {cost(593.18, 626.99, 'rgba(46,20,14,0.96)', ui.ruleReveal)}
       <Plaque
-        label="START THE GAME"
+        label={ui.startGame}
         y={787.24}
         center
         onClick={() => {
@@ -282,7 +337,7 @@ export function LoadingScreen() {
 
   useEffect(() => {
     // Préchargement réel des visuels lourds pendant l'animation.
-    ;['/img/bg/desk.webp', '/img/bg/board.webp', '/img/bg/solved.webp', ...CASES.slice(0, 2).map((c) => `/img/story/${String(c.n).padStart(2, '0')}.webp`), '/img/story/00.webp'].forEach((src) => {
+    ;['/img/bg/desk.webp', '/img/bg/board.webp', '/img/bg/solved.webp', ...[1, 2].map((n) => `/img/story/${String(n).padStart(2, '0')}.webp`), '/img/story/00.webp'].forEach((src) => {
       const i = new Image()
       i.src = src
     })

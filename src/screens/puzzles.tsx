@@ -1,4 +1,5 @@
 import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useI18n, type Lang } from '../i18n'
 import { Box, Txt } from '../ui/layout'
 
 const P = (name: string) => `/img/puzzle/${name}`
@@ -47,7 +48,7 @@ const fingerprints: [string, number, number][] = [
 const numbered: [string, number, string][] = [
   ['1.', 199.5, ''], ['2.', 236.5, ''], ['3.', 272.5, ''], ['4.', 309.5, ''], ['5.', 345.5, ''], ['6.', 381.5, ''], ['7.', 418.5, ''],
 ]
-const books: [string, number][] = [['_________', 193], ['Innovation', 229], ['Thriller', 265], ['_________', 301], ['History', 337], ['_________', 373], ['Novels', 409]]
+const BOOK_Y = [193, 229, 265, 301, 337, 373, 409]
 
 const circles: [string, number][] = [['#000000', 79.2], ['#7d0278', 148.4], ['#009c2c', 217.6], ['#750000', 286.8]]
 
@@ -77,18 +78,6 @@ const PUZZLES: Record<number, ReactNode> = {
       </Txt>
     </>
   ),
-  4: (
-    <>
-      <Pic src={P('p04-840.svg')} x={72} y={215} w={49} />
-      <Pic src={P('p04-815.svg')} x={75.15} y={294.65} w={43} />
-      <Pic src={P('p04-827.svg')} x={75.15} y={365.09} w={43} />
-      {[['Advisor age = 64', 236.54], ['Planner age = 25', 306.51], ['Mayor = Advisor - Planner', 383.49]].map(([t, y]) => (
-        <Txt key={t as string} size={18} lh="normal" align="left" x={129} y={(y as number) - 1.6} nowrap>
-          {t as string}
-        </Txt>
-      ))}
-    </>
-  ),
   5: (
     <Box x={99.75} y={186.02} w={247.006} h={247.472} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ flex: 'none', transform: 'rotate(12.22deg)', width: 207.642, height: 208.25, position: 'relative' }}>
@@ -98,19 +87,6 @@ const PUZZLES: Record<number, ReactNode> = {
       </div>
     </Box>
   ),
-  6: (
-    <>
-      {tag('e9c8f', 107.59, 201.33, 211.793, 28.972, [-20.71, -4.72, -48.32, -4.72], 'He has this sixth sense', 212.39, 215.85, 203.358)}
-      {tag('e9667', 128.79, 267.38, 169.092, 28.714, [-20.9, -5.91, -48.76, -5.91], 'This red suit', 212.39, 281.34, 203.358)}
-      {tag('cf726', 159.63, 332.25, 108.474, 28.714, [-20.9, -9.22, -48.76, -9.22], 'This insect', 212.39, 346.37, 203.358)}
-      {tag('67ae2', 87.32, 396.06, 250.98, 28.714, [-20.9, -3.98, -48.76, -3.98], 'And this strange tingling.', 213.3, 410.49, 264.185)}
-    </>
-  ),
-  7: (
-    <Txt size={27.699} ls={0.0692} lh="38.778px" cx={212.77} cy={329.1} w={199.962} pre>
-      {'NO CLUES\nFOR YOU'}
-    </Txt>
-  ),
   8: (
     <>
       <Bleed src={P('p08-arrow.svg')} x={121} y={452} w={174.915} h={23.992} inset={[-42.81, -5.72, -41.97, -5.72]} />
@@ -119,33 +95,7 @@ const PUZZLES: Record<number, ReactNode> = {
       ))}
     </>
   ),
-  9: (
-    <>
-      <Txt size={23.85} lh="33.39px" x={88.5} y={201.8} w={249} pre>
-        {'Here are the items belonging to Patrique, the FRENCH student.\n\n\nEach item corresponds to a letter.'}
-      </Txt>
-      <Pic src={P('p09-909.svg')} x={189.41} y={311.56} w={48} />
-    </>
-  ),
   10: <Pic src={P('p10-921.svg')} x={136.78} y={191} w={154} />,
-  11: (
-    <>
-      {numbered.map(([t, y]) => (
-        <Txt key={t} size={20} lh="normal" align="left" x={90} y={y - 2.6}>
-          {t}
-        </Txt>
-      ))}
-      {books.map(([t, y]) =>
-        t.startsWith('_') ? (
-          <Box key={y} x={140} y={y + 33.5} w={160} h={1.6} style={{ background: INK }} />
-        ) : (
-          <Txt key={y} size={25.448} lh="normal" align="left" x={140} y={y + 4}>
-            {t}
-          </Txt>
-        ),
-      )}
-    </>
-  ),
   12: (
     <>
       {circles.map(([c, x]) => (
@@ -154,11 +104,111 @@ const PUZZLES: Record<number, ReactNode> = {
     </>
   ),
   13: <Pic src={P('p13-1302.webp')} x={70} y={283.69} w={280} h={68} />,
-  14: (
-    <Txt size={35.063} lh="49.09px" x={83.7} y={213.7} w={259.1}>
-      Premières lettres des 3 masqués découverts
+}
+
+function P4({ lines, size }: { lines: string[]; size: number }) {
+  const ys = [236.54, 306.51, 383.49]
+  return (
+    <>
+      <Pic src={P('p04-840.svg')} x={72} y={215} w={49} />
+      <Pic src={P('p04-815.svg')} x={75.15} y={294.65} w={43} />
+      <Pic src={P('p04-827.svg')} x={75.15} y={365.09} w={43} />
+      {lines.map((t, i) => (
+        <Txt key={i} size={size} lh="normal" align="left" x={129} y={ys[i] - 1.6} nowrap>
+          {t}
+        </Txt>
+      ))}
+    </>
+  )
+}
+
+const P6_TAGS: [string, number, number, number, number, [number, number, number, number], number, number, number][] = [
+  ['e9c8f', 107.59, 201.33, 211.793, 28.972, [-20.71, -4.72, -48.32, -4.72], 212.39, 215.85, 203.358],
+  ['e9667', 128.79, 267.38, 169.092, 28.714, [-20.9, -5.91, -48.76, -5.91], 212.39, 281.34, 203.358],
+  ['cf726', 159.63, 332.25, 108.474, 28.714, [-20.9, -9.22, -48.76, -9.22], 212.39, 346.37, 203.358],
+  ['67ae2', 87.32, 396.06, 250.98, 28.714, [-20.9, -3.98, -48.76, -3.98], 213.3, 410.49, 264.185],
+]
+function P6({ lines }: { lines: string[] }) {
+  return <>{P6_TAGS.map(([key, x, y, w, h, inset, cx, cy, tw], i) => tag(key, x, y, w, h, inset, lines[i], cx, cy, tw))}</>
+}
+
+function P7({ text, w }: { text: string; w: number }) {
+  return (
+    <Txt size={27.699} ls={0.0692} lh="38.778px" cx={212.77} cy={329.1} w={w} pre>
+      {text}
     </Txt>
-  ),
+  )
+}
+
+/** Sept livres : les mots écrits sont les catégories ; les cases vides sont à trouver sur les livres réels. */
+function P11({ words }: { words: string[] }) {
+  return (
+    <>
+      {numbered.map(([t, y]) => (
+        <Txt key={t} size={20} lh="normal" align="left" x={90} y={y - 2.6}>
+          {t}
+        </Txt>
+      ))}
+      {words.map((t, i) => {
+        const y = BOOK_Y[i]
+        return t === '' ? (
+          <Box key={y} x={140} y={y + 33.5} w={160} h={1.6} style={{ background: INK }} />
+        ) : (
+          <Txt key={y} size={25.448} lh="normal" align="left" x={140} y={y + 4}>
+            {t}
+          </Txt>
+        )
+      })}
+    </>
+  )
+}
+
+function P14({ text }: { text: string }) {
+  return (
+    <Txt size={35.063} lh="49.09px" x={83.7} y={213.7} w={259.1}>
+      {text}
+    </Txt>
+  )
+}
+
+/** Énigmes dont le contenu change selon la langue (textes affichés sur le papier). */
+const LOCALIZED: Record<number, Record<Lang, ReactNode>> = {
+  4: {
+    en: <P4 lines={['Advisor age = 64', 'Planner age = 25', 'Mayor = Advisor - Planner']} size={18} />,
+    fr: <P4 lines={["Âge du conseiller = 64", "Âge de l'urbaniste = 25", 'Maire = Conseiller − Urbaniste']} size={16} />,
+  },
+  6: {
+    en: <P6 lines={['He has this sixth sense', 'This red suit', 'This insect', 'And this strange tingling.']} />,
+    fr: <P6 lines={['Il a ce sixième sens', 'Ce costume rouge', 'Cet insecte', 'Et ce curieux picotement.']} />,
+  },
+  7: {
+    en: <P7 text={'NO CLUES\nFOR YOU'} w={199.962} />,
+    fr: <P7 text={"PAS D'INDICE\nPOUR VOUS"} w={300} />,
+  },
+  9: {
+    // En anglais, l'élève est français : les objets sont à traduire (drapeau). En français, ils forment directement le mot.
+    en: (
+      <>
+        <Txt size={23.85} lh="33.39px" x={88.5} y={201.8} w={249} pre>
+          {'Here are the items belonging to Patrique, the FRENCH student.\n\n\nEach item corresponds to a letter.'}
+        </Txt>
+        <Pic src={P('p09-909.svg')} x={189.41} y={311.56} w={48} />
+      </>
+    ),
+    fr: (
+      <Txt size={23.85} lh="33.39px" cx={214.99} cy={335.25} w={248.66} pre>
+        {'Voici les objets appartenant au petit Patrique.\nChaque objet correspond à une lettre.'}
+      </Txt>
+    ),
+  },
+  11: {
+    en: <P11 words={['', 'Innovation', 'Thriller', '', 'History', '', 'Novels']} />,
+    fr: <P11 words={['', 'Univers', 'Investigation', '', 'Ingéniosité', '', 'Education']} />,
+  },
+  14: {
+    en: <P14 text="First letters of the 3 masked ones discovered" />,
+    fr: <P14 text="Premières lettres des 3 masqués découverts" />,
+  },
 }
 
 // Zone du papier où l'énigme est visible (coordonnées de l'écran).
@@ -169,6 +219,7 @@ const MAX = 3.2
 
 /** Énigme + loupe (− / + / réinitialiser). */
 export function PuzzleViewer({ n }: { n: number }) {
+  const { lang, ui } = useI18n()
   const [z, setZ] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [drag, setDrag] = useState(false)
@@ -219,15 +270,15 @@ export function PuzzleViewer({ n }: { n: number }) {
           className={`puzzle-inner${drag ? ' is-dragging' : ''}`}
           style={{ left: -CLIP.x, top: -CLIP.y, width: 430, height: 932, transformOrigin: `${CENTER.x}px ${CENTER.y}px`, transform: `translate(${pan.x}px, ${pan.y}px) scale(${z})`, cursor: z > 1 ? (drag ? 'grabbing' : 'grab') : undefined }}
         >
-          {PUZZLES[n]}
+          {LOCALIZED[n]?.[lang] ?? PUZZLES[n]}
         </div>
       </div>
-      <ZoomControls onOut={() => zoom(1 / 1.25)} onIn={() => zoom(1.25)} onReset={reset} />
+      <ZoomControls onOut={() => zoom(1 / 1.25)} onIn={() => zoom(1.25)} onReset={reset} labels={[ui.zoomOut, ui.zoomIn, ui.zoomReset]} />
     </>
   )
 }
 
-function ZoomControls({ onOut, onIn, onReset }: { onOut: () => void; onIn: () => void; onReset: () => void }) {
+function ZoomControls({ onOut, onIn, onReset, labels }: { onOut: () => void; onIn: () => void; onReset: () => void; labels: [string, string, string] }) {
   const btn = (left: number, label: string, onClick: () => void) => (
     <button type="button" className="zoom-btn" aria-label={label} onClick={onClick} style={{ left, top: 15 }}>
       <img src="/img/ui/zoom-ellipse.svg" alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />
@@ -236,9 +287,9 @@ function ZoomControls({ onOut, onIn, onReset }: { onOut: () => void; onIn: () =>
   return (
     <Box cx={215.06} y={486.15} w={300.09} h={88.026}>
       <img src="/img/ui/zoom-controls.webp" alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }} />
-      {btn(46.01, 'Zoom out', onOut)}
-      {btn(101.03, 'Zoom in', onIn)}
-      {btn(156.05, 'Reset zoom', onReset)}
+      {btn(46.01, labels[0], onOut)}
+      {btn(101.03, labels[1], onIn)}
+      {btn(156.05, labels[2], onReset)}
       <Bar cx={67.8} cy={37.9} w={12} h={3} />
       <Bar cx={122.8} cy={37.9} w={12} h={3} />
       <Bar cx={122.8} cy={37.9} w={3} h={11} />
