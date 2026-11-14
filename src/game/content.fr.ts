@@ -93,6 +93,7 @@ const CASES: Content['cases'] = [
     // Version française du Figma : plus de traduction à faire, les objets forment directement le mot.
     hint: '« Chaque objet correspond à une lettre. Assemblez-les pour former un mot. »',
     answer: 'DIX',
+    alt: ['10'],
     solved: "Les objets forment DIX. La piste se poursuit, et quelqu'un tente de vous guider de l'intérieur.",
   },
   {

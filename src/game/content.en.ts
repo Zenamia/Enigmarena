@@ -78,6 +78,7 @@ const CASES: Content['cases'] = [
     story: "Thanks to his careful observation, David managed to unlock his phone using the new code left by the kidnappers. Finally, he could call for help and resume the search for the missing children.\nWithout wasting a second, he contacted Eric for reinforcements. The two men combined their efforts to analyze the clues that might lead them to the children. David shared everything he had discovered about Adrian, including the photos from the briefcase. By cross-referencing the information, they determined a new direction to follow.\nGuided by these deductions, David headed to a strange alley called Angel Street. There he found several objects abandoned by the children, each seeming to hold a clue. He realized they had been intentionally left by one of the children, as a message pointing the way.",
     hint: '"Each item corresponds to a letter. Put them together to form a word, then translate it to uncover the secret."',
     answer: 'DIX',
+    alt: ['10'],
     solved: 'The objects form DIX. The trail points onward, and someone is trying to guide you from inside.',
   },
   {
