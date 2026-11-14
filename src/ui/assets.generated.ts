@@ -37,7 +37,7 @@ export const PRELOAD: string[] = [
   "/img/story/03.webp",
   "/img/story/04.webp",
   "/img/story/05.webp",
-  "/img/story/06.webp",
+  "/img/story/06-v2.webp",
   "/img/story/07-v2.webp",
   "/img/story/08.webp",
   "/img/story/09.webp",

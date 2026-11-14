@@ -6,7 +6,7 @@ import { useI18n, type Lang } from '../i18n'
 import { Box, Header, Paper, Plaque, Screen, ScrollText, Txt } from '../ui/layout'
 
 /** Illustration d'un chapitre. Les images remplacées changent de nom (« -v2 ») pour ne pas rester en cache chez les joueurs. */
-const ART_VERSION: Record<number, string> = { 7: '-v2', 11: '-v2' }
+const ART_VERSION: Record<number, string> = { 6: '-v2', 7: '-v2', 11: '-v2' }
 export const storyArt = (n: number) => `/img/story/${String(n).padStart(2, '0')}${ART_VERSION[n] ?? ''}.webp`
 
 /** Page d'histoire (prologue ou chapitre d'un dossier). */
