@@ -18,7 +18,7 @@ Titre (**NEW GAME** / **CONTINUE**) → (nouvelle partie : **choix de la langue*
 - **Fin** : sur l'écran « The End », le texte défile en boucle comme un générique de fin de film (appui prolongé = pause).
 - **Chrono** : 90 min, lancé à « START THE GAME ». Indice −2:00 (une fois par dossier), révélation −5:00. Score = secondes restantes.
 - **Sauvegarde par nom d'équipe** : la progression est enregistrée en ligne sous le nom d'équipe (`api/save.ts`, base Redis Upstash). Se reconnecter avec le même nom, sur n'importe quel appareil, retrouve la partie. Une copie locale (`localStorage`) ne sert qu'à reprendre la session en cours ; sans la base, le jeu fonctionne en local.
-- **Son** : ambiance + SFX (`src/audio`), bouton gramophone ; bouton plein écran. Curseur main sur toute l'app.
+- **Options** (bouton engrenage, en haut à gauche) : volume de la musique, volume des bruitages (boutons, bonne / mauvaise réponse, ouverture d'un dossier) et changement de langue en cours de partie. Les réglages de volume sont gardés sur l'appareil ; la langue est enregistrée avec la partie. Ambiance + SFX dans `src/audio`. Bouton plein écran à droite. Curseur main sur toute l'app.
 
 ## Structure
 - `src/game/content.en.ts` / `content.fr.ts` — histoires, indices, réponses et textes de résolution des 14 dossiers, par langue (modifiables).

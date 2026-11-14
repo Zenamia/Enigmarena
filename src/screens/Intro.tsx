@@ -3,6 +3,7 @@ import { useAudio } from '../audio/AudioProvider'
 import { loadCloud } from '../game/cloud'
 import { UNLOCK_CODE, teamKey } from '../game/data'
 import { useGame } from '../game/GameContext'
+import { FlagButton } from '../components/Flags'
 import { useI18n, type Lang } from '../i18n'
 import { Box, Paper, PaperInput, Plaque, Screen, ScrollText, Txt, useAssetsReady } from '../ui/layout'
 
@@ -38,39 +39,6 @@ export function TitleScreen() {
   )
 }
 
-/** Drapeaux dessinés en vectoriel (pas d'image à charger). */
-function FlagFr() {
-  return (
-    <svg viewBox="0 0 3 2" preserveAspectRatio="none" aria-hidden="true">
-      <rect width="1" height="2" fill="#1f3f8f" />
-      <rect x="1" width="1" height="2" fill="#f4efe4" />
-      <rect x="2" width="1" height="2" fill="#c3262e" />
-    </svg>
-  )
-}
-
-function FlagEn() {
-  return (
-    <svg viewBox="0 0 60 40" preserveAspectRatio="none" aria-hidden="true">
-      <rect width="60" height="40" fill="#1f3a78" />
-      <path d="M0 0L60 40M60 0L0 40" stroke="#f4efe4" strokeWidth="7" />
-      <path d="M0 0L60 40M60 0L0 40" stroke="#c3262e" strokeWidth="2.4" />
-      <path d="M30 0V40M0 20H60" stroke="#f4efe4" strokeWidth="12" />
-      <path d="M30 0V40M0 20H60" stroke="#c3262e" strokeWidth="7" />
-    </svg>
-  )
-}
-
-/** Drapeau encadré de laiton, comme les plaques du jeu. */
-function FlagButton({ x, y, label, flag, language, onPick }: { x: number; y: number; label: string; flag: ReactNode; language: string; onPick: () => void }) {
-  return (
-    <button type="button" className="flag-btn" lang={language} aria-label={label} onClick={onPick} style={{ left: x, top: y }}>
-      <span className="flag-frame">{flag}</span>
-      <span className="flag-label">{label}</span>
-    </button>
-  )
-}
-
 /** Choix de la langue de la partie (NOUVELLE PARTIE uniquement : une partie reprise garde sa langue). */
 export function LanguageScreen() {
   const { go, setLang } = useGame()
@@ -90,8 +58,8 @@ export function LanguageScreen() {
       <Txt size={19} ls={0.4} lh={1.35} cx={213.06} y={364} w={300} pre>
         {'Choisissez votre langue\nChoose your language'}
       </Txt>
-      <FlagButton x={52} y={452} label="FRANÇAIS" language="fr" flag={<FlagFr />} onPick={() => pick('fr')} />
-      <FlagButton x={228} y={452} label="ENGLISH" language="en" flag={<FlagEn />} onPick={() => pick('en')} />
+      <FlagButton x={52} y={452} language="fr" onPick={() => pick('fr')} />
+      <FlagButton x={228} y={452} language="en" onPick={() => pick('en')} />
       <Plaque label={ui.back} y={792} center onClick={() => go({ name: 'title' })} />
     </Screen>
   )

@@ -16,9 +16,23 @@ const MUSIC: Record<Scene, { url: string; volume: number }> = {
 }
 const FADE_MS = 1200
 
+/** Volume enregistré sur l'appareil (1 par défaut ; l'ancien réglage « son coupé » vaut 0). */
+function readVolume(key: string) {
+  try {
+    const raw = localStorage.getItem(key)
+    if (raw !== null) return Math.min(1, Math.max(0, Number(raw)))
+    return localStorage.getItem('enigmarena:muted') === '1' ? 0 : 1
+  } catch {
+    return 1
+  }
+}
+
 interface AudioApi {
-  muted: boolean
-  toggleMuted: () => void
+  /** Volume de la musique et des bruitages (boutons, bonne / mauvaise réponse, ouverture d'un dossier), de 0 à 1. */
+  musicVolume: number
+  sfxVolume: number
+  setMusicVolume: (v: number) => void
+  setSfxVolume: (v: number) => void
   play: (sfx: Sfx) => void
   /** Change de musique de fond (fondu enchaîné). */
   setScene: (scene: Scene) => void
@@ -28,13 +42,16 @@ const AudioContext_ = createContext<AudioApi | null>(null)
 
 /** SFX + musiques. La musique démarre au premier geste utilisateur (politique autoplay des navigateurs). */
 export function AudioProvider({ children }: { children: ReactNode }) {
-  const [muted, setMuted] = useState(() => localStorage.getItem('enigmarena:muted') === '1')
+  const [musicVolume, setMusicVolumeState] = useState(() => readVolume('enigmarena:vol:music'))
+  const [sfxVolume, setSfxVolumeState] = useState(() => readVolume('enigmarena:vol:sfx'))
   const music = useRef<Partial<Record<Scene, HTMLAudioElement>>>({})
   const sfx = useRef<Partial<Record<Sfx, HTMLAudioElement>>>({})
   const scene = useRef<Scene>('ambient')
   const unlocked = useRef(false)
-  const mutedRef = useRef(muted)
-  mutedRef.current = muted
+  const musicVol = useRef(musicVolume)
+  musicVol.current = musicVolume
+  const sfxVol = useRef(sfxVolume)
+  sfxVol.current = sfxVolume
   const fades = useRef<Partial<Record<Scene, number>>>({})
 
   const fade = useCallback((s: Scene, to: number, thenPause: boolean) => {
@@ -55,7 +72,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   /** Lance la musique de la scène courante (si le son est actif et le navigateur débloqué). */
   const startCurrent = useCallback(() => {
-    if (!unlocked.current || mutedRef.current) return
+    if (!unlocked.current || musicVol.current === 0) return
     const s = scene.current
     const el = music.current[s]
     if (!el) return
@@ -63,7 +80,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       el.volume = 0
       el.play().catch(() => {})
     }
-    fade(s, MUSIC[s].volume, false)
+    fade(s, MUSIC[s].volume * musicVol.current, false)
   }, [fade])
 
   useEffect(() => {
@@ -96,14 +113,36 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, [startCurrent])
 
+  // Réglage de la musique : appliqué tout de suite au morceau en cours.
   useEffect(() => {
-    localStorage.setItem('enigmarena:muted', muted ? '1' : '0')
-    if (muted) {
-      ;(Object.keys(music.current) as Scene[]).forEach((s) => music.current[s]?.pause())
+    try {
+      localStorage.setItem('enigmarena:vol:music', String(musicVolume))
+    } catch {
+      /* stockage indisponible */
+    }
+    if (musicVolume === 0) {
+      ;(Object.keys(music.current) as Scene[]).forEach((k) => {
+        window.clearInterval(fades.current[k])
+        music.current[k]?.pause()
+      })
+      return
+    }
+    const el = music.current[scene.current]
+    if (el && !el.paused) {
+      window.clearInterval(fades.current[scene.current])
+      el.volume = MUSIC[scene.current].volume * musicVolume
     } else {
       startCurrent()
     }
-  }, [muted, startCurrent])
+  }, [musicVolume, startCurrent])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('enigmarena:vol:sfx', String(sfxVolume))
+    } catch {
+      /* stockage indisponible */
+    }
+  }, [sfxVolume])
 
   const setScene = useCallback(
     (next: Scene) => {
@@ -119,14 +158,23 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   )
 
   const play = useCallback((name: Sfx) => {
-    if (mutedRef.current) return
+    if (sfxVol.current === 0) return
     const el = (sfx.current[name] ??= new Audio(SFX_URLS[name]))
+    el.volume = sfxVol.current
     el.currentTime = 0
     el.play().catch(() => {})
   }, [])
 
-  const toggleMuted = useCallback(() => setMuted((m) => !m), [])
-  const value = useMemo(() => ({ muted, toggleMuted, play, setScene }), [muted, toggleMuted, play, setScene])
+  const setMusicVolume = useCallback((v: number) => setMusicVolumeState(Math.min(1, Math.max(0, v))), [])
+  const setSfxVolume = useCallback((v: number) => {
+    const c = Math.min(1, Math.max(0, v))
+    sfxVol.current = c // pris en compte tout de suite (aperçu du son pendant le réglage)
+    setSfxVolumeState(c)
+  }, [])
+  const value = useMemo(
+    () => ({ musicVolume, sfxVolume, setMusicVolume, setSfxVolume, play, setScene }),
+    [musicVolume, sfxVolume, setMusicVolume, setSfxVolume, play, setScene],
+  )
 
   return <AudioContext_.Provider value={value}>{children}</AudioContext_.Provider>
 }

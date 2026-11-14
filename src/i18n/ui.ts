@@ -58,12 +58,16 @@ export interface Ui {
   finalScore: string
   theEnd: string
   backToFiles: string
+  // options
+  options: string
+  music: string
+  effects: string
+  language: string
+  close: string
   // accessibilité
   zoomOut: string
   zoomIn: string
   zoomReset: string
-  soundOn: string
-  soundOff: string
   fullscreen: string
   exitFullscreen: string
 }
@@ -120,11 +124,14 @@ const en: Ui = {
   finalScore: 'FINAL SCORE',
   theEnd: 'The End',
   backToFiles: 'BACK TO FILES',
+  options: 'OPTIONS',
+  music: 'Music',
+  effects: 'Sound effects',
+  language: 'Language',
+  close: 'CLOSE',
   zoomOut: 'Zoom out',
   zoomIn: 'Zoom in',
   zoomReset: 'Reset zoom',
-  soundOn: 'Turn sound on',
-  soundOff: 'Turn sound off',
   fullscreen: 'Full screen',
   exitFullscreen: 'Exit full screen',
 }
@@ -179,11 +186,14 @@ const fr: Ui = {
   finalScore: 'SCORE FINAL',
   theEnd: 'Fin',
   backToFiles: 'RETOUR AUX DOSSIERS',
+  options: 'OPTIONS',
+  music: 'Musique',
+  effects: 'Bruitages',
+  language: 'Langue',
+  close: 'FERMER',
   zoomOut: 'Zoom arrière',
   zoomIn: 'Zoom avant',
   zoomReset: 'Réinitialiser le zoom',
-  soundOn: 'Activer le son',
-  soundOff: 'Couper le son',
   fullscreen: 'Plein écran',
   exitFullscreen: 'Quitter le plein écran',
 }

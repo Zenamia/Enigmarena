@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AudioProvider } from './audio/AudioProvider'
 import { FullscreenButton } from './components/FullscreenButton'
-import { SoundButton } from './components/SoundButton'
+import { OptionsButton, OptionsPanel } from './components/Options'
 import { GameProvider, useGame, type Screen } from './game/GameContext'
 import { ConfirmScreen, HintScreen, InvestigationScreen, PuzzleScreen, SolutionScreen, SolvedScreen } from './screens/Case'
 import { EndScreen, EpilogueScreen, ScoreScreen } from './screens/Finale'
@@ -54,12 +54,14 @@ function useStageScale() {
 function Stage() {
   const { state } = useGame()
   const s = useStageScale()
+  const [optionsOpen, setOptionsOpen] = useState(false)
   const screen = state.screen
   // La langue de la partie s'applique aussi au document (lecteurs d'écran, césure).
   useEffect(() => {
     document.documentElement.lang = state.lang
   }, [state.lang])
-  const key = 'n' in screen ? `${screen.name}-${screen.n}` : screen.name
+  // La langue fait partie de la clé : changer de langue réaffiche l'écran avec les nouveaux textes.
+  const key = ('n' in screen ? `${screen.name}-${screen.n}` : screen.name) + `-${state.lang}`
   return (
     <div className="viewport">
       <div className="stage-box" style={{ width: STAGE_W * s, height: STAGE_H * s }}>
@@ -68,9 +70,10 @@ function Stage() {
             {renderScreen(screen)}
           </div>
           <div className="toolbar">
-            <SoundButton />
+            <OptionsButton onClick={() => setOptionsOpen(true)} />
             <FullscreenButton />
           </div>
+          {optionsOpen && <OptionsPanel onClose={() => setOptionsOpen(false)} />}
         </div>
       </div>
     </div>

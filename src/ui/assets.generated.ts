@@ -21,6 +21,7 @@ export const PRELOAD: string[] = [
   "/img/ui/zoom-ellipse.svg",
   "/img/ui/zoom-vector.svg",
   "/ui/btn-fullscreen.webp",
+  "/ui/btn-options.webp",
   "/ui/btn-sound.webp",
   "/ui/cursor-pointer.png",
   "/img/bg/board.webp",
