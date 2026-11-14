@@ -13,7 +13,7 @@ npm run build    # production (dist/)
 Titre (**NEW GAME** / **CONTINUE**) → (nouvelle partie : **choix de la langue**, drapeaux FR / EN) → équipe → instructions → règles → chargement → prologue → hub des 14 dossiers →
 (histoire → enquête → indice / énigme / révélation → solution → dossier résolu) × 14 → épilogue → rapport → fin.
 
-- **CONTINUE** : on tape le nom d'équipe (= code de connexion) et on retrouve directement les dossiers. **NEW GAME** refuse un nom déjà utilisé (sauf le code de test).
+- **CONTINUE** : on tape le nom d'équipe (= code de connexion) et on retrouve directement les dossiers. **NEW GAME** refuse un nom déjà utilisé (sauf le code de test). Le code de test `ZENAMIAGMD1005` ouvre les 14 dossiers, aussi bien par NEW GAME que par CONTINUE (même sans sauvegarde existante).
 - **Langues** : français et anglais. La langue se choisit au lancement d'une NOUVELLE PARTIE, puis elle est enregistrée avec la partie (CONTINUE la retrouve). Les énigmes 9 et 11 ont une version française propre (réponses : 9 = `DIX`, 11 = `CUISINE`) ; l'énigme 10 accepte `VEST` et `VESTE`.
 - **Fin** : sur l'écran « The End », le texte défile en boucle comme un générique de fin de film (appui prolongé = pause).
 - **Chrono** : 90 min, lancé à « START THE GAME ». Indice −2:00 (une fois par dossier), révélation −5:00. Score = secondes restantes.

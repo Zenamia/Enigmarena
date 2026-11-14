@@ -34,6 +34,7 @@ type Action =
   | { type: 'reveal'; n: number }
   | { type: 'solve'; n: number }
   | { type: 'newTeam'; team: string; unlockAll: boolean }
+  | { type: 'unlock'; team: string }
   | { type: 'replace'; state: GameState }
   | { type: 'reset' }
 
@@ -75,6 +76,9 @@ function step(s: GameState, a: Action): GameState {
     }
     case 'newTeam':
       return { ...INITIAL, lang: s.lang, team: a.team, unlockAll: a.unlockAll, confirmed: true, screen: { name: 'instructions' } }
+    case 'unlock':
+      // Code d'équipe spécial : partie déjà lancée, tous les dossiers ouverts, directement au hub.
+      return { ...INITIAL, lang: s.lang, team: a.team, unlockAll: true, confirmed: true, startedAt: Date.now(), screen: { name: 'files' } }
     case 'replace':
       return a.state
     case 'reset':
@@ -137,6 +141,8 @@ interface GameApi {
   reset: () => void
   /** Démarre une nouvelle partie sous ce nom d'équipe (efface la partie locale d'une autre équipe). */
   newTeam: (team: string, unlockAll: boolean) => void
+  /** Code d'équipe spécial : ouvre tous les dossiers, sans sauvegarde préalable. */
+  unlockTeam: (team: string) => void
   /** Remplace la partie par une sauvegarde retrouvée sur le serveur. */
   restore: (state: GameState) => void
   /** Prochain dossier à ouvrir (1..14), ou 15 quand tout est résolu. */
@@ -215,6 +221,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       solve: (n) => dispatch({ type: 'solve', n }),
       reset: () => dispatch({ type: 'reset' }),
       newTeam: (team, unlockAll) => dispatch({ type: 'newTeam', team, unlockAll }),
+      unlockTeam: (team) => dispatch({ type: 'unlock', team }),
       restore: (s) => dispatch({ type: 'replace', state: resume(s) }),
     }
   }, [state, go])

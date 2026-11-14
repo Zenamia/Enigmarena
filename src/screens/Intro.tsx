@@ -207,7 +207,7 @@ export function SignInScreen() {
 
 /** CONTINUER : le nom d'équipe sert de code de connexion et ramène directement aux dossiers. */
 export function ContinueScreen() {
-  const { state, restore, go } = useGame()
+  const { state, restore, unlockTeam, go } = useGame()
   const { play } = useAudio()
   const { ui } = useI18n()
   const [name, setName] = useState('')
@@ -226,6 +226,12 @@ export function ContinueScreen() {
     setBusy(true)
     const r = await loadCloud(clean)
     setBusy(false)
+    // Code spécial : tous les dossiers sont ouverts, qu'une sauvegarde existe ou non.
+    if (teamKey(clean) === teamKey(UNLOCK_CODE)) {
+      if (r.status === 'found') restore({ ...r.state, unlockAll: true })
+      else unlockTeam(clean)
+      return
+    }
     if (r.status === 'found') {
       restore(r.state) // retrouve la partie de cette équipe et ouvre directement les dossiers
       return
